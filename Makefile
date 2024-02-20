@@ -1,16 +1,31 @@
-PLATFORM ?= DESKTOP
-BUILD ?= DEBUG
+PLATFORM =
+ifeq ($(OS),Windows_NT)
+    PLATFORM=WIN32
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        PLATFORM = LINUX
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        PLATFORM = OSX
+    endif
+endif
+
+BUILD=DEBUG
 CC=gcc
 
 ODIR=obj
 SRCDIR=src
 BINDIR=bin
 
-IFLAGS = -I../include -I../libparseehx/src
 CFLAGS = -ggdb
+IFLAGS = -Iraylib/src
 LDFLAGS =
 LDLIBS = -lraylib
-PLATFLAGS = 
+
+ifeq ($(PLATFORM),OSX)
+    LDFLAGS += -L./raylib/src -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+endif
 
 SRCS := $(wildcard $(SRCDIR)/*.c)
 _OBJ := $(patsubst $(SRCDIR)/%.c,%.o,$(SRCS))
