@@ -14,14 +14,14 @@ typedef struct Entity_tag{
 //entity that can be interacted with but does not move
 typedef struct StaticProperties_tag{
     bool can_be_taken;
+    bool is_passable;
     int quantity;
 
 }StaticProperties;
 
 typedef struct MobileProperties_tag{
     bool is_player;
-
-
+    bool is_passable;
 }MobileProperties;
 
 
