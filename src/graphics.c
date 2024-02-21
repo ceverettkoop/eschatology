@@ -8,7 +8,7 @@
 #define MAX_PATH_LEN 1024
 #define MAX_FILENAME_LEN 64
 
-static const Vector2 REGION_ORIGIN = (Vector2){10,10}; 
+static const Vector2 REGION_ORIGIN = (Vector2){6,4}; 
 
 static Image small_sprite_pngs[SPRITE_COUNT];
 static Texture2D small_sprites[SPRITE_COUNT];
@@ -23,9 +23,19 @@ void init_graphics(){
 };
 
 void draw_frame(const Region *reg_ptr) {
-    BeginDrawing();
+
+    RenderTexture2D render_texture = LoadRenderTexture(SCREEN_WIDTH * SCALE_FACTOR, 
+        SCREEN_HEIGHT * SCALE_FACTOR);
+    Rectangle source = {0, (float) -SCREEN_HEIGHT, (float) SCREEN_WIDTH, (float) -SCREEN_HEIGHT};
+    Rectangle dest = {0, 0, (float) SCREEN_WIDTH * SCALE_FACTOR, (float) SCREEN_HEIGHT * SCALE_FACTOR};
+
+    BeginTextureMode(render_texture);
         ClearBackground(WHITE);
         draw_region_map(reg_ptr);
+    EndTextureMode(); 
+
+    BeginDrawing();
+        DrawTexturePro(render_texture.texture, source, dest, (Vector2){0,0}, 0.0f, WHITE);
     EndDrawing();
 }
 

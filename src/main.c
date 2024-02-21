@@ -10,7 +10,7 @@ int main(int argc, char const *argv[]){
     Region *cur_region_ptr = generate_region();
     generate_neighbors(cur_region_ptr);
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Eschatology");
+    InitWindow(SCREEN_WIDTH * SCALE_FACTOR, SCREEN_HEIGHT * SCALE_FACTOR, "eschatology");
     SetTargetFPS(30);
     init_graphics();
     

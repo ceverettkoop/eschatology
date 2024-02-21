@@ -4,7 +4,7 @@
 #include "user_input.h"
 #include "tile.h"
 
-#define REGION_WIDTH 106
+#define REGION_WIDTH 105
 #define REGION_HEIGHT 20
 
 typedef struct Region_tag Region;
