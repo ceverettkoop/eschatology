@@ -4,17 +4,18 @@
 #include "user_input.h"
 #include "tile.h"
 
-static const int REGION_WIDTH = 106;
-static const int REGION_HEIGHT = 20;
+#define REGION_WIDTH 106
+#define REGION_HEIGHT 20
 
-typedef struct Region_tag {
+typedef struct Region_tag Region;
+
+struct Region_tag {
     Tile tile_matrix[REGION_WIDTH][REGION_HEIGHT];
     Region *north;
     Region *east;
     Region *south;
     Region *west;
-} Region;
-
+};
 
 Region *generate_region();
 void generate_neighbors(Region *region_ptr);

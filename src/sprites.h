@@ -9,6 +9,10 @@
 #define SPRITE_MOUNTAIN 3
 #define SPRITE_PLAYER 4
 #define SPRITE_STONEFLOOR 5
+#define SPRITE_COUNT 6
+
+#define SMALL_SPRITE_WIDTH 6
+#define SMALL_SPRITE_HEIGHT 12
 
 //corresponds to a small sprite and a big sprite
 typedef uint8_t SpriteID;

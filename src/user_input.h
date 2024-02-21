@@ -1,6 +1,8 @@
 #ifndef USER_INPUT_H
 #define USER_INPUT_H
 
+#include <stdbool.h>
+
 typedef int UserInput;
 
 enum{
@@ -16,6 +18,6 @@ enum{
 };
 
 bool is_player_action(UserInput input);
-
+UserInput get_user_input();
 
 #endif /* USER_INPUT_H */

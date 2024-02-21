@@ -12,6 +12,7 @@ int main(int argc, char const *argv[]){
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Eschatology");
     SetTargetFPS(30);
+    init_graphics();
     
     //main loop
     while(!WindowShouldClose()){
@@ -20,11 +21,9 @@ int main(int argc, char const *argv[]){
         UserInput input = get_user_input();
         //determine if input is an action or UI related
         if(is_player_action(input)){
-            
         }
-
         //draw
-        draw_frame();
+        draw_frame(cur_region_ptr);
     }
     
     return 0;
