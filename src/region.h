@@ -6,11 +6,14 @@
 
 #define REGION_WIDTH 105
 #define REGION_HEIGHT 20
+#define ROWS (REGION_HEIGHT)
+#define COLUMNS (REGION_WIDTH)
+
 
 typedef struct Region_tag Region;
 
 struct Region_tag {
-    Tile tile_matrix[REGION_WIDTH][REGION_HEIGHT];
+    Tile tile_matrix[ROWS][COLUMNS];
     Region *north;
     Region *east;
     Region *south;

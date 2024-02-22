@@ -5,9 +5,9 @@
 
 static void blank_with_grass(Region *p);
 static void generate_boundaries(Region *p);
-static void gen_straight_tile_line(Tile* origin, bool is_x_axis, int col_count, int line_len, Tile tile);
-static void gen_rand_tile_line(Tile *origin, bool is_x_axis, int col_count, int extent, 
-                            int min_entity_count, int max_entity_count, Tile tile);
+static void gen_straight_tile_line(Tile* origin, bool is_x_axis, int line_len, Tile tile);
+static void gen_rand_tile_line(Tile *origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count, 
+    Tile tile);
 
 Region *generate_region(){
     Region *ret_ptr = malloc(sizeof(Region));
@@ -49,8 +49,8 @@ void generate_neighbors(Region *region_ptr){
 }
 
 static void blank_with_grass(Region *p){
-    for (int i = 0; i < REGION_WIDTH; i++){
-        for (int n = 0; n < REGION_HEIGHT; n++){
+    for (int i = 0; i < ROWS; i++){
+        for (int n = 0; n < COLUMNS; n++){
             p->tile_matrix[i][n] = get_grass_tile();
         }
     }
@@ -58,34 +58,34 @@ static void blank_with_grass(Region *p){
 
 static void generate_boundaries(Region *p){
     //north
-    gen_straight_tile_line(&(p->tile_matrix[0][0]), true, REGION_WIDTH, REGION_WIDTH, get_mountain_tile());
-    gen_rand_tile_line(&(p->tile_matrix[0][0]), true, REGION_WIDTH, REGION_WIDTH, 1, 6, get_grass_tile());
+    gen_straight_tile_line(&(p->tile_matrix[0][0]), true, REGION_WIDTH, get_mountain_tile());
+    gen_rand_tile_line(&(p->tile_matrix[0][0]), true, REGION_WIDTH, 1, 6, get_grass_tile());
     //west
-    gen_straight_tile_line(&(p->tile_matrix[0][0]), false, REGION_WIDTH, REGION_HEIGHT, get_mountain_tile());
-    gen_rand_tile_line(&(p->tile_matrix[0][0]), false, REGION_WIDTH, REGION_HEIGHT, 1, 6, get_grass_tile());
+    gen_straight_tile_line(&(p->tile_matrix[0][0]), false, REGION_HEIGHT, get_mountain_tile());
+    gen_rand_tile_line(&(p->tile_matrix[0][0]), false, REGION_HEIGHT, 1, 6, get_grass_tile());
     //south
-    gen_straight_tile_line(&(p->tile_matrix[0][REGION_HEIGHT]), true, REGION_WIDTH, REGION_WIDTH, get_mountain_tile());
-    gen_rand_tile_line(&(p->tile_matrix[0][REGION_HEIGHT]), true, REGION_WIDTH, REGION_WIDTH, 1, 6, get_grass_tile());
+    gen_straight_tile_line(&(p->tile_matrix[ROWS - 1][0]), true, REGION_WIDTH, get_mountain_tile());
+    gen_rand_tile_line(&(p->tile_matrix[ROWS - 1][0]), true, REGION_WIDTH, 1, 6, get_grass_tile());
     //east
-    gen_straight_tile_line(&(p->tile_matrix[REGION_WIDTH][0]), false, REGION_WIDTH, REGION_HEIGHT, get_mountain_tile());
-    gen_rand_tile_line(&(p->tile_matrix[REGION_WIDTH][0]), false, REGION_WIDTH, REGION_HEIGHT, 1, 6, get_grass_tile());
+    gen_straight_tile_line(&(p->tile_matrix[0][COLUMNS - 1]), false, REGION_HEIGHT, get_mountain_tile());
+    gen_rand_tile_line(&(p->tile_matrix[0][COLUMNS - 1]), false, REGION_HEIGHT, 1, 6, get_grass_tile());
 }
 
-static void gen_straight_tile_line(Tile* origin, bool is_x_axis, int col_count, int line_len, Tile tile){
+static void gen_straight_tile_line(Tile* origin, bool is_x_axis, int line_len, Tile tile){
     if(is_x_axis){
         for (int i = 0; i < line_len; i++){
             *(origin + i) = tile;
         }
     }else{
         for (int i = 0; i < line_len; i++){
-            *(origin + i * col_count) = tile;
+            *(origin + (i * COLUMNS)) = tile;
         } 
     }
 }
 
 //populates between 0 and max_entity_count elements along line
-static void gen_rand_tile_line(Tile *origin, bool is_x_axis, int col_count, int extent, 
-                            int min_entity_count, int max_entity_count, Tile tile){
+static void gen_rand_tile_line(Tile *origin, bool is_x_axis, int extent, int min_entity_count, 
+                            int max_entity_count, Tile tile){
 
     const int count = rand()/(RAND_MAX / (max_entity_count - min_entity_count) ) + min_entity_count;
     for (int i = 0; i < count; i++){
@@ -93,7 +93,7 @@ static void gen_rand_tile_line(Tile *origin, bool is_x_axis, int col_count, int 
         if(is_x_axis){
             *(origin + offset) = tile;
         }else{
-            *(origin + offset * col_count) = tile;
+            *(origin + offset * COLUMNS) = tile;
         }
     }
 }

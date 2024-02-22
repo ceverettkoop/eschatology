@@ -18,7 +18,7 @@ ODIR=obj
 SRCDIR=src
 BINDIR=bin
 
-CFLAGS = -ggdb
+CFLAGS = -ggdb -fsanitize=address
 IFLAGS = -Iraylib/src
 LDFLAGS =
 LDLIBS = -lraylib

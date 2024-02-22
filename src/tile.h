@@ -15,7 +15,7 @@ typedef struct TileProperties{
 
 typedef struct Tile_tag{
     TileProperties *properties_ptr;
-    u_int8_t entity_count;
+    uint8_t entity_count;
     Entity *entities;
 }Tile;
 

@@ -40,11 +40,11 @@ void draw_frame(const Region *reg_ptr) {
 }
 
 static void draw_region_map(const Region *reg_ptr){
-    for (int i = 0; i < REGION_WIDTH; i++){
-        for (int n = 0; n < REGION_HEIGHT; n++){
-            Vector2 offset = (Vector2){i * SMALL_SPRITE_WIDTH, n * SMALL_SPRITE_HEIGHT };
+    for (int i = 0; i < ROWS; i++){
+        for (int n = 0; n < COLUMNS; n++){
+            const Tile *tile = &(reg_ptr->tile_matrix[i][n]);
+            Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT };
             Vector2 origin = Vector2Add(offset, REGION_ORIGIN);
-            const Tile *tile = &(reg_ptr->tile_matrix[i][n]); 
             Texture2D sprite = small_sprites[tile->properties_ptr->background];
             DrawTexture(sprite, origin.x, origin.y, WHITE);
         }
@@ -53,10 +53,7 @@ static void draw_region_map(const Region *reg_ptr){
 
 static void load_small_sprite_texture(SpriteID id){
     char path[MAX_PATH_LEN];
-    char filename[MAX_FILENAME_LEN];
-    memcpy(path, "../resources/sprites/small/", MAX_PATH_LEN);
-    snprintf(filename, MAX_FILENAME_LEN - 1 , "%d.png", id);
-    strncat(path, filename, MAX_PATH_LEN - MAX_FILENAME_LEN - 1);
+    snprintf(path, MAX_PATH_LEN - 1 , "../resources/sprites/small/%d.png", id);
     small_sprite_pngs[id] = LoadImage(path);
     small_sprites[id] = LoadTextureFromImage(small_sprite_pngs[id]);
     UnloadImage(small_sprite_pngs[id]);
