@@ -9,8 +9,12 @@
 #define ROWS (REGION_HEIGHT)
 #define COLUMNS (REGION_WIDTH)
 
-
 typedef struct Region_tag Region;
+
+typedef struct TilePos_tag{
+    int row;
+    int column;
+}TilePos;
 
 struct Region_tag {
     Tile tile_matrix[ROWS][COLUMNS];

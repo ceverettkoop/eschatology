@@ -6,6 +6,8 @@
 #include "sprites.h"
 #include "entity.h"
 
+#define ENTITY_PER_TILE_MAX 64
+
 //terrain that can be passed
 typedef struct TileProperties{
     bool is_passable;
@@ -16,7 +18,7 @@ typedef struct TileProperties{
 typedef struct Tile_tag{
     TileProperties *properties_ptr;
     uint8_t entity_count;
-    Entity *entities;
+    Entity *entities[ENTITY_PER_TILE_MAX];
 }Tile;
 
 Tile get_grass_tile();

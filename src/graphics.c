@@ -17,9 +17,9 @@ static void draw_region_map(const Region *reg_ptr);
 static void load_small_sprite_texture(SpriteID id);
 
 void init_graphics(){
-    //just for testing
-    load_small_sprite_texture(SPRITE_MOUNTAIN);
-    load_small_sprite_texture(SPRITE_GRASS);
+    for (int i = 0; i < SMALL_SPRITES_IMPLEMENTED; i++){
+        load_small_sprite_texture(i);
+    }
 };
 
 void draw_frame(const Region *reg_ptr) {

@@ -4,12 +4,14 @@
 #include "stdint.h"
 
 #define SPRITE_GRASS 0
-#define SPRITE_DOOR 1
-#define SPRITE_WALL 2
-#define SPRITE_MOUNTAIN 3
-#define SPRITE_PLAYER 4
+#define SPRITE_MOUNTAIN 1
+#define SPRITE_PLAYER 2
+
+#define SPRITE_DOOR 3
+#define SPRITE_WALL 4
 #define SPRITE_STONEFLOOR 5
 #define SPRITE_COUNT 6
+#define SMALL_SPRITES_IMPLEMENTED 3
 
 #define SMALL_SPRITE_WIDTH 6
 #define SMALL_SPRITE_HEIGHT 12
