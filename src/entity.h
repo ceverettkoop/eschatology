@@ -1,6 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+
+#include "entitytypes.h"
 #include "stdbool.h"
 #include "region.h"
 
@@ -31,8 +33,8 @@ typedef struct MobileProperties_tag{
     bool is_passable;
 }MobileProperties;
 
-EntityNode *new_entity(EntityNode *list_head, bool _is_mobile, SpriteID _sprite,
-    Region *_region_ptr, TilePos _pos, void *_prop_ptr);
+EntityNode *new_entity(EntityNode *list_head, SpriteID _sprite,
+    Region *_region_ptr, TilePos _pos, EntityType type);
 void free_entity(EntityNode *ptr);
 
 #endif /* ENTITY_H */

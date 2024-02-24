@@ -3,8 +3,8 @@
 #include "region.h"
 #include <stdlib.h>
 
-EntityNode *new_entity(EntityNode *list_head, bool _is_mobile, SpriteID _sprite,
-    Region *_region_ptr, TilePos _pos, void *_prop_ptr){
+EntityNode *new_entity(EntityNode *list_head, SpriteID _sprite,
+    Region *_region_ptr, TilePos _pos, EntityType type){
 
     EntityNode *cur = list_head;
     while(cur != NULL){
@@ -21,10 +21,9 @@ EntityNode *new_entity(EntityNode *list_head, bool _is_mobile, SpriteID _sprite,
     check_malloc(cur->ptr);
 
     //DONT KNOW HOW TO DO THIS
-    cur->ptr->properties_ptr = _prop_ptr;
+    cur->ptr->properties_ptr = prop_init(type, &cur->ptr->is_mobile);
     //POINT TO A
 
-    cur->ptr->is_mobile = _is_mobile;
     cur->ptr->sprite = _sprite;
     cur->ptr->region_ptr = _region_ptr;
     cur->ptr->pos = _pos;
