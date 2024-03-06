@@ -8,8 +8,7 @@
 
 typedef struct GameState_tag{
     Region *cur_region_ptr;
-    EntityNode *player_avatar_node;
-    EntityNode *entity_head
+    EntityNode *entity_head;
 } GameState;
 
 void gs_init(GameState *gs);

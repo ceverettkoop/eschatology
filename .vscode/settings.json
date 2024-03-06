@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "raylib.h": "c",
-        "user_input.h": "c"
+        "user_input.h": "c",
+        "tile.h": "c",
+        "entity.h": "c"
     }
 }
