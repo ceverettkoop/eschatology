@@ -1,10 +1,9 @@
+#include <stdlib.h>
+#include "error.h"
 #include "entity.h"
 #include "avatar.h"
-#include "error.h"
 #include "sprites.h"
 #include "tile.h"
-#include "entity.h"
-#include <stdlib.h>
 
 Entity* init_player_avatar(Region *initial_region){
     Entity *ret_ptr = malloc(sizeof(Entity));
