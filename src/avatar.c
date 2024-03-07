@@ -1,3 +1,4 @@
+#include "entity.h"
 #include "avatar.h"
 #include "error.h"
 #include "sprites.h"
