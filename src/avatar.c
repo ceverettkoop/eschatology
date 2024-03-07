@@ -2,6 +2,7 @@
 #include "error.h"
 #include "sprites.h"
 #include "tile.h"
+#include "entity.h"
 #include <stdlib.h>
 
 Entity* init_player_avatar(Region *initial_region){
