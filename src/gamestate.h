@@ -12,6 +12,6 @@ typedef struct GameState_tag{
 } GameState;
 
 void gs_init(GameState *gs);
-void update_gamestate(GameState *gs);
+void update_gamestate(GameState *gs, UserInput input);
 
 #endif /* GAMESTATE_H */

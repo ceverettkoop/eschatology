@@ -3,6 +3,7 @@
         "raylib.h": "c",
         "user_input.h": "c",
         "tile.h": "c",
-        "entity.h": "c"
+        "entity.h": "c",
+        "movement.h": "c"
     }
 }

@@ -3,6 +3,8 @@
 #include "error.h"
 #include <stdlib.h>
 
+#define PLAYER_NODE entity_head
+
 static EntityNode *generate_head_entity(GameState *gs);
 
 void gs_init(GameState *gs){
@@ -17,9 +19,15 @@ void gs_init(GameState *gs){
 
 }
 
-void update_gamestate(GameState *gs){
+void update_gamestate(GameState *gs, UserInput input){
+    Action player_action;
 
+    //based on gs and requested action, determine what will actually happen
+    player_action = determine_player_action(gs, input);
+    process_action(player_action, gs->PLAYER_NODE);
+    process_all_interactions(gs, gs->PLAYER_NODE->next);
 
+    return;
 }
 
 static EntityNode *generate_head_entity(GameState *gs){
