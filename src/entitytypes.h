@@ -5,7 +5,8 @@
 
 typedef enum{
     PLAYER,
-    ORC
+    MOBILE_ENTITY,
+    STATIC_ENTITY
 } EntityType;
 
 void *prop_init_pointer(EntityType type, bool *mobile);

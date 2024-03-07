@@ -15,7 +15,6 @@ void gs_init(GameState *gs){
 
     //addl entities
 
-
 }
 
 void update_gamestate(GameState *gs){
@@ -26,7 +25,8 @@ void update_gamestate(GameState *gs){
 static EntityNode *generate_head_entity(GameState *gs){
     gs->entity_head = malloc(sizeof(EntityNode));
     check_malloc(gs->entity_head);
+    gs->entity_head->prev = NULL;
+    gs->entity_head->next = NULL;
     gs->entity_head->ptr = init_player_avatar(gs->cur_region_ptr);
-
 
 }

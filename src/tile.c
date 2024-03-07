@@ -11,7 +11,6 @@ Tile get_grass_tile(){
 
     ret.properties_ptr = &prop;
     ret.entity_count = 0;
-    ret.entities = NULL;
     return ret;
 }
 
@@ -25,7 +24,6 @@ Tile get_stonefloor_tile(){
 
     ret.properties_ptr = &prop;
     ret.entity_count = 0;
-    ret.entities = NULL;
     return ret;
 }
 
@@ -39,7 +37,6 @@ Tile get_wall_tile(){
 
     ret.properties_ptr = &prop;
     ret.entity_count = 0;
-    ret.entities = NULL;
     return ret;
 }
 
@@ -53,6 +50,5 @@ Tile get_mountain_tile(){
 
     ret.properties_ptr = &prop;
     ret.entity_count = 0;
-    ret.entities = NULL;
     return ret;
 }
