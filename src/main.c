@@ -25,7 +25,6 @@ int main(int argc, char const *argv[]){
         //determine if input is an action or UI related
         if(is_player_action(input)){
             update_gamestate(gs, input);
-            
         }else if(is_ui_action(input)){
             //update_ui, make ui.h
         }

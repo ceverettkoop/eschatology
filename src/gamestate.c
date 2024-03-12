@@ -1,40 +1,78 @@
-#include "gamestate.h"
-#include "avatar.h"
-#include "error.h"
 #include <stdlib.h>
+#include "gamestate.h"
+#include "entity.h"
+#include "error.h"
 
-#define PLAYER_NODE entity_head
+static inline EntityID init_entity_list(GameState *gs);
 
-static EntityNode *generate_head_entity(GameState *gs);
+void gs_init(GameState *gs) {
+    EntityID player_entity_id;
 
-void gs_init(GameState *gs){
-    //region
+    // region
     gs->cur_region_ptr = generate_region();
     generate_neighbors(gs->cur_region_ptr);
 
-    //player
-    gs->entity_head = generate_head_entity(gs);
+    player_entity_id = init_entity_list(gs);
 
-    //addl entities
+    // init player
+    init_player(player_entity_id);
+
+    // init other stuff....
+}
+
+void update_gamestate(GameState *gs, UserInput input) {
+
 
 }
 
-void update_gamestate(GameState *gs, UserInput input){
-    Action player_action;
+// assume head and back always non null... at least one entity
+EntityID new_entity(GameState *gs) {
+    int id_to_issue = gs->next_id;
+    EntityNode *new_node = malloc(sizeof(EntityNode));
+    check_malloc(new_node);
+    new_node->id = id_to_issue;
+    gs->entity_list_back->next = new_node;
+    new_node->prev = gs->entity_list_back;
+    new_node->next = NULL;
+    gs->entity_list_back = new_node;
 
-    //based on gs and requested action, determine what will actually happen
-    player_action = determine_player_action(gs, input);
-    process_action(player_action, gs->PLAYER_NODE);
-    process_all_interactions(gs, gs->PLAYER_NODE->next);
+    // tick up and bail on overflow
+    if (gs->next_id == INT64_MAX) err_overflow();
+    gs->next_id++;
 
-    return;
+    return id_to_issue;
 }
 
-static EntityNode *generate_head_entity(GameState *gs){
-    gs->entity_head = malloc(sizeof(EntityNode));
-    check_malloc(gs->entity_head);
-    gs->entity_head->prev = NULL;
-    gs->entity_head->next = NULL;
-    gs->entity_head->ptr = init_player_avatar(gs->cur_region_ptr);
+void free_entity(EntityID id, GameState *gs){
+    //TODO locate every component reference to this entity
+    //will make hashmaps for every system
+    EntityNode *cur = gs->entity_list_head;
+    while(cur != NULL){
+        if(cur->id == id) break;
+        cur = cur->next;
+    }
+    if(cur == NULL) err_entity_not_found();
+    if(cur == gs->entity_list_head) err_free_list_head();  
+    //we know it's not the head
+    cur->prev->next = cur->next;
+    cur->next->prev = cur->prev;
+    free(cur);
+}
 
+static inline EntityID init_entity_list(GameState *gs) {
+    EntityID init_id = 0;
+
+    // one time init of list head
+    gs->entity_list_head = malloc(sizeof(EntityNode));
+    check_malloc(gs->entity_list_head);
+
+    gs->entity_list_head->id = init_id;
+    gs->entity_list_head->prev = NULL;
+    gs->entity_list_head->next = NULL;
+
+    gs->next_id = init_id + 1;
+
+    gs->entity_list_back = gs->entity_list_head;
+
+    return init_id;
 }

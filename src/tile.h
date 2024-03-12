@@ -18,7 +18,7 @@ typedef struct TileProperties{
 typedef struct Tile_tag{
     TileProperties *properties_ptr;
     uint8_t entity_count;
-    Entity *entities[ENTITY_PER_TILE_MAX];
+    EntityID entities[ENTITY_PER_TILE_MAX];
 }Tile;
 
 Tile get_grass_tile();

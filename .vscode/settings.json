@@ -4,6 +4,7 @@
         "user_input.h": "c",
         "tile.h": "c",
         "entity.h": "c",
-        "movement.h": "c"
+        "movement.h": "c",
+        "region.h": "c"
     }
 }
