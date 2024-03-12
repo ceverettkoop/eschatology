@@ -2,6 +2,7 @@
 #include "gamestate.h"
 #include "entity.h"
 #include "error.h"
+#include "sc_map.h"
 
 static inline EntityID init_entity_list(GameState *gs);
 
@@ -17,7 +18,8 @@ void gs_init(GameState *gs) {
     // init player
     init_player(player_entity_id);
 
-    // init other stuff....
+    // init hashmaps for all components
+    sc_map_init_64v(gs->position_map,0,0);
 }
 
 void update_gamestate(GameState *gs, UserInput input) {

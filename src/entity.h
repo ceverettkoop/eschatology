@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-typedef int64_t EntityID;
+typedef uint64_t EntityID;
 
 #endif /* ENTITY_H */

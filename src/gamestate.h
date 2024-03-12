@@ -5,6 +5,8 @@
 #include "region.h"
 #include "entity.h"
 
+struct sc_map_64v;
+
 typedef struct EntityNode_tag{
     EntityID id;
     struct EntityNode_tag *next;
@@ -16,6 +18,7 @@ typedef struct GameState_tag{
     EntityID next_id;
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;
+    struct sc_map_64v *position_map;
 } GameState;
 
 void gs_init(GameState *gs);
