@@ -5,6 +5,7 @@
         "tile.h": "c",
         "entity.h": "c",
         "movement.h": "c",
-        "region.h": "c"
+        "region.h": "c",
+        "position.h": "c"
     }
 }

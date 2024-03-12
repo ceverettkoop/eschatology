@@ -1,19 +1,16 @@
 #include <stdlib.h>
 #include "tile.h"
+#include "components/sprites.h"
+#include "components/position.h"
 
-Tile get_grass_tile(){
-    static TileProperties prop;
-    Tile ret;
+EntityID gen_grass_tile(GameState *gs){
+    EntityID new_id = new_entity(gs);
 
-    prop.is_passable = true;
-    prop.damage_per_turn = 0;
-    prop.background = SPRITE_GRASS;   
 
-    ret.properties_ptr = &prop;
-    ret.entity_count = 0;
-    return ret;
+    return new_id;
 }
 
+/*
 Tile get_stonefloor_tile(){
     static TileProperties prop;
     Tile ret;
@@ -52,3 +49,4 @@ Tile get_mountain_tile(){
     ret.entity_count = 0;
     return ret;
 }
+*/

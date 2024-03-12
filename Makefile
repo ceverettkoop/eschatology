@@ -18,16 +18,24 @@ ODIR=obj
 SRCDIR=src
 BINDIR=bin
 
-CFLAGS = -ggdb -fsanitize=address
+CFLAGS = -ggdb -fsanitize=address -O2
 IFLAGS = -Iraylib/src
 LDFLAGS =
 LDLIBS = -lraylib
+CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
+-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 \
+-D_GLIBCXX_ASSERTIONS \
+-fstack-clash-protection -fstack-protector-strong \
+-Wl,-z,nodlopen -Wl,-z,noexecstack \
+-Wl,-z,relro -Wl,-z,now \
+-Werror=implicit -Werror=incompatible-pointer-types -Werror=int-conversion \
 
 ifeq ($(PLATFORM),OSX)
     LDFLAGS += -L./raylib/src -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 endif
 
 SRCS := $(wildcard $(SRCDIR)/*.c)
+SRCS += $(wildcard $(SRCDIR)/*/*.c)
 _OBJ := $(patsubst $(SRCDIR)/%.c,%.o,$(SRCS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 

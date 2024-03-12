@@ -1,6 +1,7 @@
 #ifndef REGION_H
 #define REGION_H
 
+#include "gamestate.h"
 #include "user_input.h"
 #include "tile.h"
 
@@ -17,14 +18,15 @@ typedef struct TilePos_tag{
 }TilePos;
 
 struct Region_tag {
-    Tile tile_matrix[ROWS][COLUMNS];
+    GameState *gs;
+    EntityID tile_matrix[ROWS][COLUMNS];
     Region *north;
     Region *east;
     Region *south;
     Region *west;
 };
 
-Region *generate_region();
+Region *generate_region(GameState *gs);
 void generate_neighbors(Region *region_ptr);
 void update_region(Region *region_ptr, UserInput input);
 

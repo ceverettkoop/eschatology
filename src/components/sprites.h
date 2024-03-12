@@ -17,6 +17,6 @@
 #define SMALL_SPRITE_HEIGHT 12
 
 //corresponds to a small sprite and a big sprite
-typedef uint8_t SpriteID;
+typedef uint32_t SpriteID;
 
 #endif /* SPRITES_H */

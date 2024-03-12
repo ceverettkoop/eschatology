@@ -1,9 +1,9 @@
+#include <string.h>
+#include <stdio.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "graphics.h"
-#include "tile.h"
-#include "string.h"
-#include "stdio.h"
+#include "components/sprites.h"
 
 #define MAX_PATH_LEN 1024
 #define MAX_FILENAME_LEN 64
@@ -32,6 +32,7 @@ void draw_frame(const Region *reg_ptr) {
     BeginTextureMode(render_texture);
         ClearBackground(WHITE);
         draw_region_map(reg_ptr);
+        //draw UI here
     EndTextureMode(); 
 
     BeginDrawing();
@@ -42,10 +43,9 @@ void draw_frame(const Region *reg_ptr) {
 static void draw_region_map(const Region *reg_ptr){
     for (int i = 0; i < ROWS; i++){
         for (int n = 0; n < COLUMNS; n++){
-            const Tile *tile = &(reg_ptr->tile_matrix[i][n]);
             Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT };
             Vector2 origin = Vector2Add(offset, REGION_ORIGIN);
-            Texture2D sprite = small_sprites[tile->properties_ptr->background];
+            Texture2D sprite = small_sprites[determine_sprite(i,n)];
             DrawTexture(sprite, origin.x, origin.y, WHITE);
         }
     }
