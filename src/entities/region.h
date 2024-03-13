@@ -12,14 +12,8 @@
 
 typedef struct Region_tag Region;
 
-typedef struct TilePos_tag{
-    int row;
-    int column;
-}TilePos;
-
 struct Region_tag {
     GameState *gs;
-    EntityID tile_matrix[ROWS][COLUMNS];
     Region *north;
     Region *east;
     Region *south;

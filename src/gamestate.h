@@ -2,8 +2,8 @@
 #define GAMESTATE_H
 
 #include <stdint.h>
-#include "region.h"
 #include "entity.h"
+#include "entities/region.h"
 
 struct sc_map_64v;
 

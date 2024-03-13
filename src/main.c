@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]){
         }
 
         //draw
-        draw_frame(gs->cur_region_ptr);    
+        draw_frame(gs);    
     }
     
     return 0;

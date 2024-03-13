@@ -14,7 +14,7 @@ static const Vector2 REGION_ORIGIN = (Vector2){6,4};
 static Image small_sprite_pngs[SPRITE_COUNT];
 static Texture2D small_sprites[SPRITE_COUNT];
 
-static void draw_region_map(const Region *reg_ptr);
+static void draw_region_map(const Region *reg_ptr, GameState *gs);
 static void load_small_sprite_texture(SpriteID id);
 
 void init_graphics(){
@@ -23,7 +23,7 @@ void init_graphics(){
     }
 };
 
-void draw_frame(const Region *reg_ptr) {
+void draw_frame(GameState *gs){
 
     RenderTexture2D render_texture = LoadRenderTexture(SCREEN_WIDTH * SCALE_FACTOR, 
         SCREEN_HEIGHT * SCALE_FACTOR);
@@ -32,8 +32,9 @@ void draw_frame(const Region *reg_ptr) {
 
     BeginTextureMode(render_texture);
         ClearBackground(WHITE);
-        draw_region_map(reg_ptr);
+        draw_region_map(gs->cur_region_ptr, gs);
         //draw UI here
+        //draw inset here
     EndTextureMode(); 
 
     BeginDrawing();
@@ -41,12 +42,17 @@ void draw_frame(const Region *reg_ptr) {
     EndDrawing();
 }
 
-static void draw_region_map(const Region *reg_ptr){
+static void draw_region_map(const Region *reg_ptr, GameState *gs){
     for (int i = 0; i < ROWS; i++){
         for (int n = 0; n < COLUMNS; n++){
             Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT };
             Vector2 origin = Vector2Add(offset, REGION_ORIGIN);
-            Texture2D sprite = small_sprites[determine_sprite(i,n,gs)];
+            Position pos = {
+                .row = i,
+                .column = n,
+                .region_ptr = reg_ptr
+            };
+            Texture2D sprite = small_sprites[determine_sprite(pos, gs)];
             DrawTexture(sprite, origin.x, origin.y, WHITE);
         }
     }
