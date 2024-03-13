@@ -23,3 +23,12 @@ void err_free_list_head() {
     fprintf(stderr, "Error: cannot remove head entity/player\n");
     exit(1);    
 }
+
+void err_component_exists(const char *component_str) {
+    fprintf(stderr, "Warning: attempt to write component of type %s where already exists\n", component_str);
+}
+
+void err_no_sprite_to_draw(int row, int column) {
+    fprintf(stderr, "Error: no sprite to draw at row %d and column %d\n");
+    exit(1);
+}

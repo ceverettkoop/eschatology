@@ -19,9 +19,11 @@ typedef struct GameState_tag{
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;
     struct sc_map_64v *position_map;
+    struct sc_map_64v *sprite_map;
 } GameState;
 
 void gs_init(GameState *gs);
+void gs_deinit(GameState *gs);
 void update_gamestate(GameState *gs, UserInput input);
 
 EntityID new_entity(GameState *gs);

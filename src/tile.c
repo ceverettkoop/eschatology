@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "tile.h"
-#include "components/sprites.h"
+#include "components/sprite.h"
 #include "components/position.h"
 
 EntityID gen_grass_tile(GameState *gs){

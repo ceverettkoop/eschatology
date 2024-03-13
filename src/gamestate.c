@@ -20,6 +20,7 @@ void gs_init(GameState *gs) {
 
     // init hashmaps for all components
     sc_map_init_64v(gs->position_map,0,0);
+    sc_map_init_64v(gs->sprite_map,0,0);
 }
 
 void update_gamestate(GameState *gs, UserInput input) {

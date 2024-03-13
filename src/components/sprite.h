@@ -1,5 +1,5 @@
-#ifndef SPRITES_H
-#define SPRITES_H
+#ifndef SPRITE_H
+#define SPRITE_H
 
 #include "stdint.h"
 
@@ -18,5 +18,11 @@
 
 //corresponds to a small sprite and a big sprite
 typedef uint32_t SpriteID;
+typedef int8_t DrawPriority;
 
-#endif /* SPRITES_H */
+typedef struct Sprite_tag{
+    SpriteID id;
+    DrawPriority draw_priority;
+}Sprite;
+
+#endif /* SPRITE_H */

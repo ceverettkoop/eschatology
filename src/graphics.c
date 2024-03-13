@@ -3,7 +3,8 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "graphics.h"
-#include "components/sprites.h"
+#include "components/sprite.h"
+#include "components/position.h"
 
 #define MAX_PATH_LEN 1024
 #define MAX_FILENAME_LEN 64
@@ -45,7 +46,7 @@ static void draw_region_map(const Region *reg_ptr){
         for (int n = 0; n < COLUMNS; n++){
             Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT };
             Vector2 origin = Vector2Add(offset, REGION_ORIGIN);
-            Texture2D sprite = small_sprites[determine_sprite(i,n)];
+            Texture2D sprite = small_sprites[determine_sprite(i,n,gs)];
             DrawTexture(sprite, origin.x, origin.y, WHITE);
         }
     }
