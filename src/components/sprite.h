@@ -2,6 +2,7 @@
 #define SPRITE_H
 
 #include "stdint.h"
+#include "component.h"
 
 #define SPRITE_GRASS (Sprite){0,0}
 #define SPRITE_MOUNTAIN (Sprite){1,0}
@@ -25,7 +26,7 @@ typedef struct Sprite_tag{
     DrawPriority draw_priority;
 }Sprite;
 
-void add_sprite(EntityID id, Sprite value, GameState *gs);
-void free_sprite(EntityID id, GameState *gs);
+ADD_COMPONENT_DECL(Sprite);
+FREE_COMPONENT_DECL(Sprite);
 
 #endif /* SPRITE_H */

@@ -54,9 +54,14 @@ void generate_neighbors(Region *region_ptr) {
 static void blank_with_grass(Region *p, GameState *gs) {
     for (int row = 0; row < ROWS; row++){
         for (int col = 0; col < COLUMNS; col++){
-            EntityID tile_entity_id = new_entity(gs);
-            add_position(tile_entity_id, row, col, gs);
-            add_sprite(tile_entity_id, SPRITE_GRASS, gs);
+            EntityID tile_entity_id = new_entity(gs);\
+            Position pos = {
+                .row = row,
+                .column = col,
+                .region_ptr = p
+            };
+            add_Position(tile_entity_id, pos, gs);
+            add_Sprite(tile_entity_id, SPRITE_GRASS, gs);
         }
     }
 }

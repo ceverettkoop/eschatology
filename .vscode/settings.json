@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "": "",
         "raylib.h": "c",
         "user_input.h": "c",
         "tile.h": "c",
@@ -20,6 +21,16 @@
         "tuple": "c",
         "vector": "c",
         "graphics.h": "c",
-        "gamestate.h": "c"
+        "gamestate.h": "c",
+        "array": "cpp",
+        "charconv": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "variant": "cpp",
+        "thread": "cpp",
+        "chrono": "c",
+        "format": "c"
     }
 }

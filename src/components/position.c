@@ -9,10 +9,10 @@ SpriteID determine_sprite(Position pos, GameState *gs) {
     //values in loop
     EntityID key;
     Position *value;
-    sc_map_foreach(gs->position_map, key, value){
+    sc_map_foreach(gs->Position_map, key, value){
         if( value->column == pos.column && value->row == pos.row && value->region_ptr == pos.region_ptr){
             //matching value = find sprite for given entity
-            sprite_found = sc_map_get_64v(gs->sprite_map, key);
+            sprite_found = sc_map_get_64v(gs->Sprite_map, key);
             if (sprite_found->draw_priority > best){
                 best = sprite_found->draw_priority;
                 sprite_to_draw = sprite_found;
@@ -26,29 +26,8 @@ SpriteID determine_sprite(Position pos, GameState *gs) {
     }
 }
 
-void add_position(EntityID id, int row, int column, GameState* gs) {
-    void *pos_ptr = malloc(sizeof(Position));
-    check_malloc(pos_ptr);
-
-    void *old_val = sc_map_put_64v(gs->position_map, id, pos_ptr);
-    if(sc_map_found(gs->position_map)){
-        free(old_val);
-        err_component_exists("Position");
-    }
-    ((Position*)pos_ptr)->row = row;
-    ((Position*)pos_ptr)->column = column;
-    ((Position*)pos_ptr)->region_ptr = gs->cur_region_ptr;
-}
-
-void free_position(EntityID id, GameState *gs) {
-    void *component_to_free = sc_map_get_64v(gs->position_map, id);
-    if(sc_map_found(gs->position_map)){
-        free(component_to_free);
-        sc_map_del_64v(gs->position_map, id);
-    }else{
-        err_free_missing_component("Position");
-    }
-}
+ADD_COMPONENT_FUNC(Position);
+FREE_COMPONENT_FUNC(Position);
 
 Position move(Position origin, Direction dir, int distance) { 
     

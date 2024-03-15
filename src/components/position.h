@@ -1,6 +1,7 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include "component.h"
 #include "sprite.h"
 #include "entity.h"
 #include "gamestate.h"
@@ -25,8 +26,8 @@ typedef enum{
 } Direction;
 
 
-void add_position(EntityID id, int row, int column, GameState *gs);
-void free_position(EntityID id, GameState *gs);
+ADD_COMPONENT_DECL(Position);
+FREE_COMPONENT_DECL(Position);
 SpriteID determine_sprite(Position pos, GameState *gs);
 Position move(Position origin, Direction dir, int distance);
 

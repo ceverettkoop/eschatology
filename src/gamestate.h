@@ -18,8 +18,8 @@ typedef struct GameState_tag{
     EntityID next_id;
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;
-    struct sc_map_64v *position_map;
-    struct sc_map_64v *sprite_map;
+    struct sc_map_64v *Position_map;
+    struct sc_map_64v *Sprite_map;
 } GameState;
 
 void gs_init(GameState *gs);
