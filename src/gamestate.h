@@ -18,8 +18,10 @@ typedef struct GameState_tag{
     EntityID next_id;
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;
+    //TODO ADD THESE BY MACRO
     struct sc_map_64v *Position_map;
     struct sc_map_64v *Sprite_map;
+    struct sc_map_64v *Tile_map;
 } GameState;
 
 void gs_init(GameState *gs);
