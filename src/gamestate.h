@@ -22,6 +22,7 @@ typedef struct GameState_tag{
     struct sc_map_64v *Position_map;
     struct sc_map_64v *Sprite_map;
     struct sc_map_64v *Tile_map;
+    struct sc_map_64v *Region_map;
 } GameState;
 
 void gs_init(GameState *gs);

@@ -12,25 +12,33 @@ static void gen_straight_tile_line(Position origin, Region* region_ptr, bool is_
 static void gen_rand_tile_line(
     EntityID origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count, EntityID template );
 
-//region not handled as an entity per se
-Region *generate_region(GameState *gs) {
-    Region *ret_ptr = malloc(sizeof(Region));
-    check_malloc(ret_ptr);
 
-    ret_ptr->gs = gs;
-    ret_ptr->north = NULL;
-    ret_ptr->south = NULL;
-    ret_ptr->west = NULL;
-    ret_ptr->east = NULL;
+
+ADD_COMPONENT_FUNC(Region);
+FREE_COMPONENT_FUNC(Region);
+
+
+
+//region not handled as an entity per se
+void init_region(EntityID id, GameState *gs){
+    Region *region_ptr =  sc_map_get_64v(gs->Region_map, id);
+    if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+
+    region_ptr->gs = gs;
+    //ID 0 = player_id, here a flag for not initialized
+    region_ptr->north = 0;
+    region_ptr->south = 0;
+    region_ptr->west = 0;
+    region_ptr->east = 0;
 
     // new seed
     srand(time(NULL));
 
     //region creation = creation of tile entities with position component that points to this region
-    blank_with_grass(ret_ptr, gs);
-    generate_boundaries(ret_ptr, gs);  // includes exits
+    blank_with_grass(region_ptr, gs);
+    generate_boundaries(region_ptr, gs);  // includes exits
 
-    return ret_ptr;
+
 }
 
 void generate_neighbors(Region *region_ptr) {
@@ -53,6 +61,7 @@ void generate_neighbors(Region *region_ptr) {
 }
 
 static void blank_with_grass(Region *p, GameState *gs) {
+    int index = 0;
     for (int row = 0; row < ROWS; row++){
         for (int col = 0; col < COLUMNS; col++){
             EntityID tile_entity_id = new_entity(gs);\
@@ -67,6 +76,8 @@ static void blank_with_grass(Region *p, GameState *gs) {
             add_Position(tile_entity_id, pos, gs);
             add_Tile(tile_entity_id, tile, gs);
             add_Sprite(tile_entity_id, SPRITE_GRASS, gs);
+            p->tile_ids[index] = tile_entity_id;
+            index++;
         }
     }
 }
