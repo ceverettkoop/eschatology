@@ -20,11 +20,12 @@
 typedef uint32_t SpriteID;
 typedef int8_t DrawPriority;
 
-
-
 typedef struct Sprite_tag{
     SpriteID id;
     DrawPriority draw_priority;
 }Sprite;
+
+void add_sprite(EntityID id, Sprite value, GameState *gs);
+void free_sprite(EntityID id, GameState *gs);
 
 #endif /* SPRITE_H */

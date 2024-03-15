@@ -2,13 +2,15 @@
 #include "region.h"
 #include "error.h"
 #include "time.h"
+#include "components/position.h"
 
-static void blank_with_grass(Region *p);
-static void generate_boundaries(Region *p);
+static void blank_with_grass(Region *p, GameState *gs);
+static void generate_boundaries(Region *p, GameState *gs);
 static void gen_straight_tile_line(EntityID origin, bool is_x_axis, int line_len, EntityID template );
 static void gen_rand_tile_line(
     EntityID origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count, EntityID template );
 
+//region not handled as an entity per se
 Region *generate_region(GameState *gs) {
     Region *ret_ptr = malloc(sizeof(Region));
     check_malloc(ret_ptr);
@@ -22,9 +24,9 @@ Region *generate_region(GameState *gs) {
     // new seed
     srand(time(NULL));
 
-    // actually create region
-    blank_with_grass(ret_ptr);
-    generate_boundaries(ret_ptr);  // includes exits
+    //region creation = creation of tile entities with position component that points to this region
+    blank_with_grass(ret_ptr, gs);
+    generate_boundaries(ret_ptr, gs);  // includes exits
 
     return ret_ptr;
 }
@@ -48,10 +50,13 @@ void generate_neighbors(Region *region_ptr) {
     }
 }
 
-static void blank_with_grass(Region *p) {
-    for (int i = 0; i < ROWS; i++) {
-        for (int n = 0; n < COLUMNS; n++) {
-            p->tile_matrix[i][n] = gen_grass_tile(p->gs);
+//sprite for tile values should be changed
+static void blank_with_grass(Region *p, GameState *gs) {
+    for (int row = 0; row < ROWS; row++){
+        for (int col = 0; col < COLUMNS; col++){
+            EntityID tile_entity_id = new_entity(gs);
+            add_position(tile_entity_id, row, col, gs);
+            add_sprite(tile_entity_id, SPRITE_GRASS, gs);
         }
     }
 }

@@ -3,11 +3,12 @@
 #include "error.h"
 
 SpriteID determine_sprite(Position pos, GameState *gs) { 
-    EntityID key;
-    Position *value;
     DrawPriority best = -1;
     Sprite* sprite_found = NULL;
     Sprite* sprite_to_draw = NULL;
+    //values in loop
+    EntityID key;
+    Position *value;
     sc_map_foreach(gs->position_map, key, value){
         if( value->column == pos.column && value->row == pos.row && value->region_ptr == pos.region_ptr){
             //matching value = find sprite for given entity

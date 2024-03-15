@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "entity.h"
-#include "entities/region.h"
+#include "region.h"
 
 struct sc_map_64v;
 
