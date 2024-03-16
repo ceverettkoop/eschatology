@@ -1,5 +1,5 @@
 #include "position.h"
-#include "../region.h"
+#include "region.h"
 #include "error.h"
 
 SpriteID determine_sprite(Position pos, GameState *gs) { 

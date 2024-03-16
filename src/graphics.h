@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include "entities/region.h"
+#include "components/region.h"
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480

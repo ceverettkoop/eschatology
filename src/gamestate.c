@@ -11,7 +11,7 @@ void gs_init(GameState *gs) {
 
     // region
     gs->cur_region_ptr = generate_region(gs);
-    generate_neighbors(gs->cur_region_ptr);
+    generate_neighbors(gs->cur_region_ptr, gs);
 
     player_entity_id = init_entity_list(gs);
 

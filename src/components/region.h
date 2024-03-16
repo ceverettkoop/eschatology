@@ -15,18 +15,18 @@ typedef struct Region_tag Region;
 
 struct Region_tag {
     GameState *gs;
-    EntityID *north;
-    EntityID *east;
-    EntityID *south;
-    EntityID *west;
-    EntityID tile_ids[REGION_AREA];
+    EntityID north;
+    EntityID east;
+    EntityID south;
+    EntityID west;
+    EntityID tile_ids[ROWS][COLUMNS];
 };
 
 ADD_COMPONENT_DECL(Region);
 FREE_COMPONENT_DECL(Region);
-void init_region(EntityID id, GameState *gs);
+Region *generate_region(GameState *gs);
 //TODO free regions I guess although they just get freed at program exit
-void generate_neighbors(Region *region_ptr);
+void generate_neighbors(EntityID id, GameState *gs);
 void update_region(Region *region_ptr, UserInput input);
 
 #endif /* REGION_H */

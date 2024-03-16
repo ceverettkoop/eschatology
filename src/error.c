@@ -33,6 +33,6 @@ void err_free_missing_component(const char *component_str) {
 }
 
 void err_no_sprite_to_draw(int row, int column) {
-    fprintf(stderr, "Error: no sprite to draw at row %d and column %d\n");
+    fprintf(stderr, "Error: no sprite to draw at row %d and column %d\n", row, column);
     exit(1);
 }

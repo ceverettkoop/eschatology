@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 #include "entity.h"
-#include "region.h"
+#include "user_input.h"
 
+struct Region;
 struct sc_map_64v;
 
 typedef struct EntityNode_tag{
@@ -14,11 +15,10 @@ typedef struct EntityNode_tag{
 }EntityNode;
 
 typedef struct GameState_tag{
-    Region *cur_region_ptr;
+    struct Region *cur_region_ptr;
     EntityID next_id;
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;
-    //TODO ADD THESE BY MACRO
     struct sc_map_64v *Position_map;
     struct sc_map_64v *Sprite_map;
     struct sc_map_64v *Tile_map;
