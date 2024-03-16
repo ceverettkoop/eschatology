@@ -1,14 +1,14 @@
-#include "raylib.h"
-#include "graphics.h"
-#include "user_input.h"
-#include "region.h"
-#include "gamestate.h"
-#include "error.h"
 #include <stdlib.h>
 
-int main(int argc, char const *argv[]){
+#include "components/region.h"
+#include "error.h"
+#include "gamestate.h"
+#include "graphics.h"
+#include "raylib.h"
+#include "user_input.h"
 
-    //init game_state
+int main(int argc, char const *argv[]) {
+    // init game_state
     GameState *gs = malloc(sizeof(GameState));
     check_malloc(gs);
     gs_init(gs);
@@ -16,22 +16,21 @@ int main(int argc, char const *argv[]){
     InitWindow(SCREEN_WIDTH * SCALE_FACTOR, SCREEN_HEIGHT * SCALE_FACTOR, "eschatology");
     SetTargetFPS(30);
     init_graphics();
-    
-    //main loop
-    while(!WindowShouldClose()){
 
-        //update only on input
+    // main loop
+    while (!WindowShouldClose()) {
+        // update only on input
         UserInput input = get_user_input();
-        //determine if input is an action or UI related
-        if(is_player_action(input)){
+        // determine if input is an action or UI related
+        if (is_player_action(input)) {
             update_gamestate(gs, input);
-        }else if(is_ui_action(input)){
-            //update_ui, make ui.h
+        } else if (is_ui_action(input)) {
+            // update_ui, make ui.h
         }
 
-        //draw
-        draw_frame(gs);    
+        // draw
+        draw_frame(gs);
     }
-    
+
     return 0;
 }

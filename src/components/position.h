@@ -3,15 +3,16 @@
 
 #include "component.h"
 #include "sprite.h"
-#include "entity.h"
-#include "gamestate.h"
+#include "../entity.h"
+#include "../gamestate.h"
 #include "../sc_map.h"
 
+struct Region_tag;
 
 typedef struct Position_tag{
     int row;
     int column;
-    Region *region_ptr;
+    struct Region_tag *region_ptr;
 }Position;
 
 typedef enum{

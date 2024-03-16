@@ -3,20 +3,21 @@
 #include "entity.h"
 #include "error.h"
 #include "sc_map.h"
+#include "components/region.h"
 
 static inline EntityID init_entity_list(GameState *gs);
 
 void gs_init(GameState *gs) {
     EntityID player_entity_id;
-
+    EntityID init_region_id;
     // region
-    gs->cur_region_ptr = generate_region(gs);
-    generate_neighbors(gs->cur_region_ptr, gs);
+    gs->cur_region_ptr = generate_region(gs, &init_region_id);
+    generate_neighbors(init_region_id, gs);
 
     player_entity_id = init_entity_list(gs);
 
     // init player
-    init_player(player_entity_id);
+    //init_player(player_entity_id);
 
     //TODO MAKE THIS A MACRO
     // init hashmaps for all components

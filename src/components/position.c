@@ -1,6 +1,6 @@
 #include "position.h"
 #include "region.h"
-#include "error.h"
+#include "../error.h"
 
 SpriteID determine_sprite(Position pos, GameState *gs) { 
     DrawPriority best = -1;
@@ -23,6 +23,7 @@ SpriteID determine_sprite(Position pos, GameState *gs) {
         return sprite_to_draw->id;
     }else{
         err_no_sprite_to_draw(pos.row, pos.column);
+        return 0;
     }
 }
 
@@ -86,5 +87,6 @@ Position move(Position origin, Direction dir, int distance) {
     if(ret_val.column < 0 ){
         ret_val.column = 0;
     }
-    
+
+    return ret_val;   
 }

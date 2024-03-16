@@ -5,7 +5,7 @@
 #include "entity.h"
 #include "user_input.h"
 
-struct Region;
+struct Region_tag;
 struct sc_map_64v;
 
 typedef struct EntityNode_tag{
@@ -15,7 +15,7 @@ typedef struct EntityNode_tag{
 }EntityNode;
 
 typedef struct GameState_tag{
-    struct Region *cur_region_ptr;
+    struct Region_tag *cur_region_ptr;
     EntityID next_id;
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;

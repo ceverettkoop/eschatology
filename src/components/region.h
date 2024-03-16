@@ -24,7 +24,7 @@ struct Region_tag {
 
 ADD_COMPONENT_DECL(Region);
 FREE_COMPONENT_DECL(Region);
-Region *generate_region(GameState *gs);
+Region *generate_region(GameState *gs, EntityID *_id);
 //TODO free regions I guess although they just get freed at program exit
 void generate_neighbors(EntityID id, GameState *gs);
 void update_region(Region *region_ptr, UserInput input);

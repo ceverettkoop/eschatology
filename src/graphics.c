@@ -14,7 +14,7 @@ static const Vector2 REGION_ORIGIN = (Vector2){6,4};
 static Image small_sprite_pngs[SPRITE_COUNT];
 static Texture2D small_sprites[SPRITE_COUNT];
 
-static void draw_region_map(const Region *reg_ptr, GameState *gs);
+static void draw_region_map(Region *reg_ptr, GameState *gs);
 static void load_small_sprite_texture(SpriteID id);
 
 void init_graphics(){
@@ -42,7 +42,7 @@ void draw_frame(GameState *gs){
     EndDrawing();
 }
 
-static void draw_region_map(const Region *reg_ptr, GameState *gs){
+static void draw_region_map(Region *reg_ptr, GameState *gs){
     for (int i = 0; i < ROWS; i++){
         for (int n = 0; n < COLUMNS; n++){
             Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT };

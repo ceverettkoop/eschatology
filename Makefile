@@ -1,14 +1,14 @@
 PLATFORM =
 ifeq ($(OS),Windows_NT)
-    PLATFORM=WIN32
+	PLATFORM=WIN32
 else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        PLATFORM = LINUX
-    endif
-    ifeq ($(UNAME_S),Darwin)
-        PLATFORM = OSX
-    endif
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		PLATFORM = LINUX
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		PLATFORM = OSX
+	endif
 endif
 
 BUILD=DEBUG
@@ -19,8 +19,8 @@ SRCDIR=src
 BINDIR=bin
 
 CFLAGS = -ggdb -fsanitize=address -O2
-IFLAGS = -Iraylib/src
-LDFLAGS =
+IFLAGS = -Iraylib/src -Icomponents
+LDFLAGS = -v
 LDLIBS = -lraylib
 CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 \
@@ -31,7 +31,7 @@ CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
 -Werror=implicit -Werror=incompatible-pointer-types -Werror=int-conversion \
 
 ifeq ($(PLATFORM),OSX)
-    LDFLAGS += -L./raylib/src -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+	LDFLAGS += -L./raylib/src -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 endif
 
 SRCS := $(wildcard $(SRCDIR)/*.c)
@@ -48,4 +48,5 @@ eschatology:$(OBJ)
 .PHONY: clean
 
 clean:
+	rm -f $(ODIR)/*/*.o
 	rm -f $(ODIR)/*.o

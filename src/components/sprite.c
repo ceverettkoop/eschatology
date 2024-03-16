@@ -1,9 +1,9 @@
 #include <stdlib.h>
+#include "../entity.h"
+#include "../gamestate.h"
 #include "sprite.h"
-#include "entity.h"
-#include "gamestate.h"
 #include "component.h"
-
+#include "../error.h"
 
 ADD_COMPONENT_FUNC(Sprite);
 FREE_COMPONENT_FUNC(Sprite);

@@ -1,3 +1,4 @@
 bin/eschatology
 /obj/*.o
 .DS_Store
+obj/components/*.o
