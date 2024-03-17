@@ -10,11 +10,11 @@ static inline EntityID init_entity_list(GameState *gs);
 void gs_init(GameState *gs) {
     EntityID player_entity_id;
     EntityID init_region_id;
+
+    player_entity_id = init_entity_list(gs);
     // region
     gs->cur_region_ptr = generate_region(gs, &init_region_id);
     generate_neighbors(init_region_id, gs);
-
-    player_entity_id = init_entity_list(gs);
 
     // init player
     //init_player(player_entity_id);
@@ -34,7 +34,7 @@ void update_gamestate(GameState *gs, UserInput input) {
 
 // assume head and back always non null... at least one entity
 EntityID new_entity(GameState *gs) {
-    int id_to_issue = gs->next_id;
+    EntityID id_to_issue = gs->next_id;
     EntityNode *new_node = malloc(sizeof(EntityNode));
     check_malloc(new_node);
     new_node->id = id_to_issue;

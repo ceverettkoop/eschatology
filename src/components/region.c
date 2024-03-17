@@ -118,12 +118,8 @@ static void generate_boundaries(Region *p, GameState *gs) {
 static void gen_straight_tile_line(
     Position origin, bool is_x_axis, int line_len, Sprite sprite, Tile tile, GameState *gs) {
     EntityID to_change_id;
-    Position *to_change_ptr;
     Sprite *sprite_to_change;
     Tile *tile_to_change;
-    EntityID origin_id = origin.region_ptr->tile_ids[origin.row][origin.column];
-    Position *origin_pos_ptr = sc_map_get_64v(gs->Position_map, origin_id);
-    if (!sc_map_found(gs->Position_map)) err_entity_not_found();
 
     int row = origin.row;
     int col = origin.column;
@@ -149,12 +145,8 @@ static void gen_straight_tile_line(
 static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count,
     Sprite sprite, Tile tile, GameState *gs) {
     EntityID to_change_id;
-    Position *to_change_ptr;
     Sprite *sprite_to_change;
     Tile *tile_to_change;
-    EntityID origin_id = origin.region_ptr->tile_ids[origin.row][origin.column];
-    Position *origin_pos_ptr = sc_map_get_64v(gs->Position_map, origin_id);
-    if (!sc_map_found(gs->Position_map)) err_entity_not_found();
 
     int row = origin.row;
     int col = origin.column;

@@ -18,7 +18,7 @@ static void draw_region_map(Region *reg_ptr, GameState *gs);
 static void load_small_sprite_texture(SpriteID id);
 
 void init_graphics(){
-    for (int i = 0; i < SMALL_SPRITES_IMPLEMENTED; i++){
+    for (SpriteID i = 0; i < SMALL_SPRITES_IMPLEMENTED; i++){
         load_small_sprite_texture(i);
     }
 };

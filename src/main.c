@@ -27,7 +27,6 @@ int main(int argc, char const *argv[]) {
         } else if (is_ui_action(input)) {
             // update_ui, make ui.h
         }
-
         // draw
         draw_frame(gs);
     }
