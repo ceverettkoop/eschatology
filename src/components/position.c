@@ -9,10 +9,10 @@ SpriteID determine_sprite(Position pos, GameState *gs) {
     //values in loop
     EntityID key;
     Position *value;
-    sc_map_foreach(gs->Position_map, key, value){
+    sc_map_foreach(&gs->Position_map, key, value){
         if( value->column == pos.column && value->row == pos.row && value->region_ptr == pos.region_ptr){
             //matching value = find sprite for given entity
-            sprite_found = sc_map_get_64v(gs->Sprite_map, key);
+            sprite_found = sc_map_get_64v(&gs->Sprite_map, key);
             if (sprite_found->draw_priority > best){
                 best = sprite_found->draw_priority;
                 sprite_to_draw = sprite_found;

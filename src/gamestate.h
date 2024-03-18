@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include "entity.h"
 #include "user_input.h"
+#include "sc_map.h"
 
 struct Region_tag;
-struct sc_map_64v;
 
 typedef struct EntityNode_tag{
     EntityID id;
@@ -19,10 +19,10 @@ typedef struct GameState_tag{
     EntityID next_id;
     EntityNode *entity_list_head;
     EntityNode *entity_list_back;
-    struct sc_map_64v *Position_map;
-    struct sc_map_64v *Sprite_map;
-    struct sc_map_64v *Tile_map;
-    struct sc_map_64v *Region_map;
+    struct sc_map_64v Position_map;
+    struct sc_map_64v Sprite_map;
+    struct sc_map_64v Tile_map;
+    struct sc_map_64v Region_map;
 } GameState;
 
 void gs_init(GameState *gs);

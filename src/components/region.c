@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "sc_map.h"
 #include "../error.h"
 #include "position.h"
+#include "sc_map.h"
 #include "sprite.h"
 #include "tile.h"
 
@@ -22,8 +22,8 @@ FREE_COMPONENT_FUNC(Region);
 
 // region not handled as an entity per se
 static Region *init_region(EntityID id, GameState *gs) {
-    Region *region_ptr = sc_map_get_64v(gs->Region_map, id);
-    if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+    Region *region_ptr = sc_map_get_64v(&gs->Region_map, id);
+    if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
 
     region_ptr->gs = gs;
     // ID 0 = player_id, here a flag for not initialized
@@ -44,35 +44,38 @@ static Region *init_region(EntityID id, GameState *gs) {
 Region *generate_region(GameState *gs, EntityID *_id) {
     EntityID id = new_entity(gs);
     *_id = id;
+    Region *reg_ptr = malloc(sizeof(Region));
+    check_malloc(reg_ptr);
+    sc_map_put_64v(&gs->Region_map, id, reg_ptr);
     return init_region(id, gs);
 }
 
 void generate_neighbors(EntityID id, GameState *gs) {
-    Region *region_ptr = sc_map_get_64v(gs->Region_map, id);
+    Region *region_ptr = sc_map_get_64v(&gs->Region_map, id);
     Region *new_ptr = NULL;
-    if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+    if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
     if (region_ptr->north == 0) {
-        region_ptr->north = new_entity(gs);
-        new_ptr = sc_map_get_64v(gs->Region_map, region_ptr->north);
-        if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+        generate_region(gs, &region_ptr->north);
+        new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->north);
+        if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->south = id;
     }
     if (region_ptr->south == 0) {
-        region_ptr->south = new_entity(gs);
-        new_ptr = sc_map_get_64v(gs->Region_map, region_ptr->south);
-        if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+        generate_region(gs, &region_ptr->south);
+        new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->south);
+        if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->north = id;
     }
     if (region_ptr->west == 0) {
-        region_ptr->west = new_entity(gs);
-        new_ptr = sc_map_get_64v(gs->Region_map, region_ptr->west);
-        if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+        generate_region(gs, &region_ptr->west);
+        new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->west);
+        if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->east = id;
     }
     if (region_ptr->east == 0) {
-        region_ptr->east = new_entity(gs);
-        new_ptr = sc_map_get_64v(gs->Region_map, region_ptr->east);
-        if (!sc_map_found(gs->Region_map)) err_entity_not_found();
+        generate_region(gs, &region_ptr->east);
+        new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->east);
+        if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->west = id;
     }
 }
@@ -97,21 +100,21 @@ static void generate_boundaries(Region *p, GameState *gs) {
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
     gen_rand_tile_line(
-        (Position){.row = 0, .column = 0}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
+        (Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
     // west
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_WIDTH, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
     gen_rand_tile_line(
-        (Position){.row = 0, .column = 0}, false, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
+        (Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_HEIGHT, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
     // south
     gen_straight_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH,
         SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
     gen_rand_tile_line(
-        (Position){.row = ROWS - 1, .column = 0}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
+        (Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
     // east
     gen_straight_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_WIDTH,
         SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 0, .column = COLUMNS - 1}, false, REGION_WIDTH, 1, 6, SPRITE_GRASS,
+    gen_rand_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT, 1, 6, SPRITE_GRASS,
         (Tile){.passable = true}, gs);
 }
 
@@ -125,17 +128,17 @@ static void gen_straight_tile_line(
     int col = origin.column;
     for (int i = 0; i < line_len; i++) {
         if (is_x_axis) {
-            if (row == ROWS) break;
             row++;
+            if (row >= ROWS) break;
         } else {
-            if (col == COLUMNS) break;
             col++;
+            if (col >= COLUMNS) break;
         }
         to_change_id = origin.region_ptr->tile_ids[row][col];
-        sprite_to_change = sc_map_get_64v(gs->Sprite_map, to_change_id);
-        if (!sc_map_found(gs->Sprite_map)) err_entity_not_found();
-        tile_to_change = sc_map_get_64v(gs->Tile_map, to_change_id);
-        if (!sc_map_found(gs->Tile_map)) err_entity_not_found();
+        sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
+        if (!sc_map_found(&gs->Sprite_map)) err_entity_not_found();
+        tile_to_change = sc_map_get_64v(&gs->Tile_map, to_change_id);
+        if (!sc_map_found(&gs->Tile_map)) err_entity_not_found();
         *sprite_to_change = sprite;
         *tile_to_change = tile;
     }
@@ -162,10 +165,10 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
             if (col >= COLUMNS) continue;
         }
         to_change_id = origin.region_ptr->tile_ids[row][col];
-        sprite_to_change = sc_map_get_64v(gs->Sprite_map, to_change_id);
-        if (!sc_map_found(gs->Sprite_map)) err_entity_not_found();
-        tile_to_change = sc_map_get_64v(gs->Tile_map, to_change_id);
-        if (!sc_map_found(gs->Tile_map)) err_entity_not_found();
+        sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
+        if (!sc_map_found(&gs->Sprite_map)) err_entity_not_found();
+        tile_to_change = sc_map_get_64v(&gs->Tile_map, to_change_id);
+        if (!sc_map_found(&gs->Tile_map)) err_entity_not_found();
         *sprite_to_change = sprite;
         *tile_to_change = tile;
     }

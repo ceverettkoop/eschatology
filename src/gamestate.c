@@ -11,6 +11,13 @@ void gs_init(GameState *gs) {
     EntityID player_entity_id;
     EntityID init_region_id;
 
+    //TODO MAKE THIS A MACRO
+    // init hashmaps for all components
+    sc_map_init_64v(&gs->Position_map,0,0);
+    sc_map_init_64v(&gs->Sprite_map,0,0);
+    sc_map_init_64v(&gs->Tile_map,0,0);
+    sc_map_init_64v(&gs->Region_map,0,0);
+
     player_entity_id = init_entity_list(gs);
     // region
     gs->cur_region_ptr = generate_region(gs, &init_region_id);
@@ -18,13 +25,6 @@ void gs_init(GameState *gs) {
 
     // init player
     //init_player(player_entity_id);
-
-    //TODO MAKE THIS A MACRO
-    // init hashmaps for all components
-    sc_map_init_64v(gs->Position_map,0,0);
-    sc_map_init_64v(gs->Sprite_map,0,0);
-    sc_map_init_64v(gs->Tile_map,0,0);
-    sc_map_init_64v(gs->Region_map,0,0);
 }
 
 void update_gamestate(GameState *gs, UserInput input) {
