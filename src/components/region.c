@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "../sc_map.h"
+#include "sc_map.h"
 #include "../error.h"
 #include "position.h"
 #include "sprite.h"

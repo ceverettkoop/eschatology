@@ -19,7 +19,7 @@ SRCDIR=src
 BINDIR=bin
 
 CFLAGS = -ggdb -fsanitize=address -O2
-IFLAGS = -Iraylib/src -Icomponents
+IFLAGS = -Iraylib/src -Icomponents -isystem include
 LDFLAGS =
 LDLIBS = -lraylib
 CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \

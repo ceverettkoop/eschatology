@@ -5,7 +5,7 @@
 
 #include "../entity.h"
 #include "../gamestate.h"
-#include "../sc_map.h"
+#include "sc_map.h"
 
 #define TYPE_MAP(type) type##_map
 
