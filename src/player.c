@@ -5,8 +5,9 @@
 #include "components/sprite.h"
 
 
-void init_player(EntityID id) {
-
+void init_player(EntityID id, GameState *gs){
+    EntityID name_id = new_entity(gs);
+    add_Name(name_id, "Player", gs);
 
 
 }
