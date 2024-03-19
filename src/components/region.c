@@ -128,11 +128,11 @@ static void gen_straight_tile_line(
     int col = origin.column;
     for (int i = 0; i < line_len; i++) {
         if (is_x_axis) {
-            row++;
-            if (row >= ROWS) break;
-        } else {
             col++;
             if (col >= COLUMNS) break;
+        } else {
+            row++;
+            if (row >= ROWS) break;
         }
         to_change_id = origin.region_ptr->tile_ids[row][col];
         sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
@@ -158,11 +158,12 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
     for (int i = 0; i < count; i++) {
         int offset = rand() / (RAND_MAX / extent);
         if (is_x_axis) {
-            row = origin.row + offset;
-            if (row >= ROWS) continue;
-        } else {
             col = origin.column + offset;
             if (col >= COLUMNS) continue;
+        } else {
+            row = origin.row + offset;
+            if (row >= ROWS) continue;
+
         }
         to_change_id = origin.region_ptr->tile_ids[row][col];
         sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
