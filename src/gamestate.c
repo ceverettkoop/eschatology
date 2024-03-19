@@ -17,6 +17,7 @@ void gs_init(GameState *gs) {
     sc_map_init_64v(&gs->Sprite_map,0,0);
     sc_map_init_64v(&gs->Tile_map,0,0);
     sc_map_init_64v(&gs->Region_map,0,0);
+    sc_map_init_64v(&gs->Name_map,0,0);
 
     player_entity_id = init_entity_list(gs);
     // region
