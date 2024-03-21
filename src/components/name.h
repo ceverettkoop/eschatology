@@ -2,7 +2,6 @@
 #define NAME_H
 
 #include "component.h"
-#include "../entity.h"
 #include "../gamestate.h"
 #include "sc_map.h"
 

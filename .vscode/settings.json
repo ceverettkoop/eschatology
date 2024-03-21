@@ -33,6 +33,7 @@
         "chrono": "c",
         "format": "c",
         "any": "c",
-        "complex": "c"
+        "complex": "c",
+        "*.tcc": "c"
     }
 }

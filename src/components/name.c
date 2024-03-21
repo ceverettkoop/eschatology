@@ -1,6 +1,5 @@
 #include "name.h"
 #include "component.h"
-#include "../entity.h"
 #include "../gamestate.h"
 #include "sc_map.h"
 

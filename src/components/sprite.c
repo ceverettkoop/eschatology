@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "../entity.h"
 #include "../gamestate.h"
 #include "sprite.h"
 #include "component.h"

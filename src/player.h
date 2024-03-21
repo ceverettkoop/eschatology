@@ -1,8 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "entity.h"
+#include "gamestate.h"
 
-void init_player(EntityID id, GameState *gs);
+void create_player(EntityID id, GameState *gs);
+void free_player(EntityID id, GameState *gs);
 
 #endif /* PLAYER_H */

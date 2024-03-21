@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "gamestate.h"
-#include "entity.h"
 #include "error.h"
 #include "sc_map.h"
 #include "components/region.h"

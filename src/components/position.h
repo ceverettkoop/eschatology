@@ -3,7 +3,6 @@
 
 #include "component.h"
 #include "sprite.h"
-#include "../entity.h"
 #include "../gamestate.h"
 #include "sc_map.h"
 

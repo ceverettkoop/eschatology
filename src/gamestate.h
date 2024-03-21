@@ -2,10 +2,10 @@
 #define GAMESTATE_H
 
 #include <stdint.h>
-#include "entity.h"
 #include "user_input.h"
 #include "sc_map.h"
 
+typedef uint64_t EntityID;
 struct Region_tag;
 
 typedef struct EntityNode_tag{

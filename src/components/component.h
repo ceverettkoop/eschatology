@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-#include "../entity.h"
 #include "../gamestate.h"
 #include "sc_map.h"
 
@@ -24,9 +23,9 @@
     }
 
 #define FREE_FUNC_NAME(type) free_##type
-#define FREE_COMPONENT_DECL(type) void FREE_FUNC_NAME(type)(EntityID id, type value, GameState * gs);
+#define FREE_COMPONENT_DECL(type) void FREE_FUNC_NAME(type)(EntityID id, GameState * gs);
 #define FREE_COMPONENT_FUNC(type)                                         \
-    void FREE_FUNC_NAME(type)(EntityID id, type value, GameState * gs) {  \
+    void FREE_FUNC_NAME(type)(EntityID id, GameState * gs) {  \
         void *component_to_free = sc_map_get_64v(&gs->TYPE_MAP(type), id); \
         if (sc_map_found(&gs->TYPE_MAP(type))) {                           \
             free(component_to_free);                                      \
