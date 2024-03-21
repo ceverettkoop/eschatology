@@ -3,6 +3,7 @@
 #include "error.h"
 #include "sc_map.h"
 #include "components/region.h"
+#include "player.h"
 
 static inline EntityID init_entity_list(GameState *gs);
 
@@ -24,12 +25,7 @@ void gs_init(GameState *gs) {
     generate_neighbors(init_region_id, gs);
 
     // init player
-    //init_player(player_entity_id);
-}
-
-void update_gamestate(GameState *gs, UserInput input) {
-
-
+    player_entity_id = create_player(gs);
 }
 
 // assume head and back always non null... at least one entity

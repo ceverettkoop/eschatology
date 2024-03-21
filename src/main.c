@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "user_input.h"
 
+
 int main(int argc, char const *argv[]) {
     // init game_state
     GameState *gs = malloc(sizeof(GameState));
@@ -23,7 +24,7 @@ int main(int argc, char const *argv[]) {
         UserInput input = get_user_input();
         // determine if input is an action or UI related
         if (is_player_action(input)) {
-            update_gamestate(gs, input);
+            handle_user_input(gs, input);
         } else if (is_ui_action(input)) {
             // update_ui, make ui.h
         }

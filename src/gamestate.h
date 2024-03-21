@@ -28,7 +28,6 @@ typedef struct GameState_tag{
 
 void gs_init(GameState *gs);
 void gs_deinit(GameState *gs);
-void update_gamestate(GameState *gs, UserInput input);
 
 EntityID new_entity(GameState *gs);
 void free_entity(EntityID id, GameState *gs);

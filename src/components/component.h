@@ -1,11 +1,6 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-#include <stdlib.h>
-
-#include "../gamestate.h"
-#include "sc_map.h"
-
 #define TYPE_MAP(type) type##_map
 
 #define ADD_FUNC_NAME(type) add_##type

@@ -3,7 +3,7 @@
 
 #include "gamestate.h"
 
-void create_player(EntityID id, GameState *gs);
+EntityID create_player(GameState *gs);
 void free_player(EntityID id, GameState *gs);
 
 #endif /* PLAYER_H */

@@ -34,6 +34,7 @@
         "format": "c",
         "any": "c",
         "complex": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "error.h": "c"
     }
 }

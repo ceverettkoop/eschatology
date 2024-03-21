@@ -7,11 +7,11 @@
 
 #define PLAYER_ORIGIN_POS (Position){REGION_HEIGHT / 2, REGION_HEIGHT / 2 , gs->cur_region_ptr}
 
-void create_player(EntityID id, GameState *gs){
+EntityID create_player(GameState *gs){
     EntityID name_id = new_entity(gs);
     add_Name(name_id, (Name){"Player"}, gs);
     add_Position(name_id, PLAYER_ORIGIN_POS, gs);
-    add_Sprite(id, SPRITE_PLAYER, gs);
+    add_Sprite(name_id, SPRITE_PLAYER, gs);
 }
 
 void free_player(EntityID id, GameState *gs){

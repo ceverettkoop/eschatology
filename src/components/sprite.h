@@ -2,6 +2,8 @@
 #define SPRITE_H
 
 #include "stdint.h"
+#include "../error.h"
+#include "../gamestate.h"
 #include "component.h"
 
 #define SPRITE_GRASS (Sprite){0,0}

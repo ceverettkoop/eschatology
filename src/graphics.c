@@ -40,6 +40,8 @@ void draw_frame(GameState *gs) {
     BeginDrawing();
     DrawTexturePro(render_texture.texture, source, dest, (Vector2){0, 0}, 0.0f, WHITE);
     EndDrawing();
+    // cleanup
+    UnloadRenderTexture(render_texture);
 }
 
 static void draw_region_map(Region *reg_ptr, GameState *gs) {

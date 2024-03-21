@@ -1,10 +1,11 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-#include "component.h"
 #include "sprite.h"
-#include "../gamestate.h"
 #include "sc_map.h"
+#include "../gamestate.h"
+#include "../error.h"
+#include "component.h"
 
 struct Region_tag;
 

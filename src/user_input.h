@@ -13,6 +13,7 @@ typedef enum{
     MOVE_SW,
     MOVE_W,
     MOVE_NW,
+    PASS_TURN
 } UserInput;
 
 bool is_player_action(UserInput input);

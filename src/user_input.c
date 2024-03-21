@@ -36,6 +36,9 @@ UserInput get_user_input(){
     case KEY_KP_3:
         return MOVE_SE;
         break;
+    case KEY_KP_5:
+        return PASS_TURN;
+        break;
     default:
         return 0;
         break;
