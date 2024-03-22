@@ -19,5 +19,6 @@ typedef enum{
 bool is_player_action(UserInput input);
 bool is_ui_action(UserInput input);
 UserInput get_user_input();
+Direction user_input_to_dir(UserInput user_in);
 
 #endif /* USER_INPUT_H */

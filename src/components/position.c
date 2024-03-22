@@ -2,6 +2,9 @@
 #include "region.h"
 #include "../error.h"
 
+static Direction is_border(Position pos);
+static void change_region(Direction dir, Position* pos);
+
 SpriteID determine_sprite(Position pos, GameState *gs) { 
     DrawPriority best = -1;
     Sprite* sprite_found = NULL;
@@ -30,13 +33,12 @@ SpriteID determine_sprite(Position pos, GameState *gs) {
 ADD_COMPONENT_FUNC(Position);
 FREE_COMPONENT_FUNC(Position);
 
-Position move(Position origin, Direction dir, int distance) { 
+Position calc_destination(Position origin, Direction dir, int distance) { 
     
     Position ret_val;
     ret_val.region_ptr = origin.region_ptr;
 
     //TODO ACCOUNT FOR BLOCKING ETC
-
     switch (dir){
     case DIR_N:
         ret_val.column = origin.column;
@@ -89,4 +91,41 @@ Position move(Position origin, Direction dir, int distance) {
     }
 
     return ret_val;   
+}
+
+void move_position(Position* pos, Position dest) {
+    //if it's a border, change our region
+    Direction border_dir = is_border(dest);
+    if(border_dir != DIR_NONE){
+        change_region(border_dir, pos);
+        return; //done
+    }else{
+        pos->column = dest.column;
+        pos->row = dest.row;
+        //region only changed by change region
+        return;
+    }
+}
+
+static Direction is_border(Position pos) {
+    if(pos.row == ROWS - 1 ){
+        return DIR_S;
+    }
+    if(pos.row == 0 ){
+        return DIR_N;
+    }
+    if(pos.column == COLUMNS - 1 ){
+        return DIR_E;
+    }
+    if(pos.column == 0 ){
+        return DIR_W;
+    }
+    return DIR_NONE;
+}
+
+//HAVE TO SHIFT US TO A VALID TILE IN THE NEW SPOT
+//TODO ADJUST REGION GEN TO ALLOW THIS
+static void change_region(Direction dir, Position* pos) {
+
+
 }

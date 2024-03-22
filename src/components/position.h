@@ -24,13 +24,16 @@ typedef enum{
     DIR_SW,
     DIR_W,
     DIR_NW,
+    DIR_NONE
 } Direction;
 
 
 ADD_COMPONENT_DECL(Position);
 FREE_COMPONENT_DECL(Position);
 SpriteID determine_sprite(Position pos, GameState *gs);
-Position move(Position origin, Direction dir, int distance);
-
+Position calc_destination(Position origin, Direction dir, int distance);
+void move_position(Position *pos, Position dest);
+Direction is_border(Position pos);
+void change_region(Direction dir, Position *pos);
 
 #endif /* POSITION_H */

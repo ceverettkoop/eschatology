@@ -3,12 +3,13 @@
 #include "error.h"
 #include "sc_map.h"
 #include "components/region.h"
+#include "components/position.h"
 #include "player.h"
 
 static inline EntityID init_entity_list(GameState *gs);
+static EntityID player_entity_id;
 
 void gs_init(GameState *gs) {
-    EntityID player_entity_id;
     EntityID init_region_id;
 
     //TODO MAKE THIS A MACRO
@@ -61,6 +62,7 @@ void free_entity(EntityID id, GameState *gs){
     cur->next->prev = cur->prev;
     free(cur);
 }
+
 
 static inline EntityID init_entity_list(GameState *gs) {
     EntityID init_id = 0;
