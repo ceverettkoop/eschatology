@@ -1,5 +1,6 @@
 #include "user_input.h"
 #include "raylib.h"
+#include "error.h"
 
 bool is_player_action(UserInput input){
     return input;
@@ -40,7 +41,39 @@ UserInput get_user_input(){
         return PASS_TURN;
         break;
     default:
-        return 0;
         break;
     }
+}
+
+Direction user_input_to_dir(UserInput user_in) { 
+    switch (user_in){
+    case MOVE_N:
+        return DIR_N;
+        break;
+    case MOVE_NE:
+        return DIR_NE;
+        break;
+    case MOVE_E:
+        return DIR_E;
+        break;
+    case MOVE_SE:
+        return DIR_SE;
+        break;
+    case MOVE_S:
+        return DIR_S;
+        break;
+    case MOVE_SW:
+        return DIR_SW;
+        break;
+    case MOVE_W:
+        return DIR_W;
+        break;      
+    case MOVE_NW:
+        return DIR_NW;
+        break;                                              
+    default:
+        fatal_err_generic("invalid input conversion to direction\n");
+        break;
+    }
+    
 }

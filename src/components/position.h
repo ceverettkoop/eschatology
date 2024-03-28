@@ -32,8 +32,9 @@ ADD_COMPONENT_DECL(Position);
 FREE_COMPONENT_DECL(Position);
 SpriteID determine_sprite(Position pos, GameState *gs);
 Position calc_destination(Position origin, Direction dir, int distance);
-void move_position(Position *pos, Position dest);
+void change_position(Position *pos, Position dest);
 Direction is_border(Position pos);
 void change_region(Direction dir, Position *pos);
+bool is_move_valid(EntityID entity, Position *new_pos);
 
 #endif /* POSITION_H */

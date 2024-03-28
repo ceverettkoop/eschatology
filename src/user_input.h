@@ -2,6 +2,7 @@
 #define USER_INPUT_H
 
 #include <stdbool.h>
+#include "position.h"
 
 typedef enum{
     NO_INPUT = 0,

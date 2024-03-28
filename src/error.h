@@ -2,6 +2,7 @@
 #define ERROR_H
 
 void check_malloc(void *ptr);
+void fatal_err_generic(const char* msg);
 void err_overflow();
 void err_entity_not_found();
 void err_free_list_head();

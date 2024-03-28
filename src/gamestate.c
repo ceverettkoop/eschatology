@@ -12,7 +12,6 @@ static EntityID player_entity_id;
 void gs_init(GameState *gs) {
     EntityID init_region_id;
 
-    //TODO MAKE THIS A MACRO
     // init hashmaps for all components
     sc_map_init_64v(&gs->Position_map,0,0);
     sc_map_init_64v(&gs->Sprite_map,0,0);
