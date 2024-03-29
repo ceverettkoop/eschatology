@@ -5,6 +5,8 @@
 
 static Direction is_border(Position pos);
 static void change_region(Direction dir, Position* pos);
+static Position calc_destination(Position origin, Direction dir, int distance);
+void change_position(Position *pos, Position dest);
 
 SpriteID determine_sprite(Position pos, GameState* gs) {
     DrawPriority best = -1;
@@ -29,6 +31,11 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
         err_no_sprite_to_draw(pos.row, pos.column);
         return 0;
     }
+}
+
+bool attempt_move(EntityID entity, Direction dir, int distance) { 
+
+    return false; 
 }
 
 ADD_COMPONENT_FUNC(Position);
@@ -124,9 +131,6 @@ static Direction is_border(Position pos) {
 
 // HAVE TO SHIFT US TO A VALID TILE IN THE NEW SPOT
 // TODO ADJUST REGION GEN TO ALLOW THIS
-static void change_region(Direction dir, Position* pos) {}
+static void change_region(Direction dir, Position* pos) {
 
-bool is_move_valid(EntityID entity, Position* new_pos) { 
-
-    return false; 
 }
