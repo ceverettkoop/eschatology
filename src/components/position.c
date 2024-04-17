@@ -2,11 +2,13 @@
 
 #include "../error.h"
 #include "region.h"
+#include "../memory.h"
 
+static bool cmp_pos(Position *a, Position *b);
 static Direction is_border(Position pos);
 static void change_region(Direction dir, Position* pos);
 static Position calc_destination(Position origin, Direction dir, int distance);
-void change_position(Position *pos, Position dest);
+void change_position(Position* pos, Position dest);
 
 SpriteID determine_sprite(Position pos, GameState* gs) {
     DrawPriority best = -1;
@@ -19,6 +21,7 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
         if (value->column == pos.column && value->row == pos.row && value->region_ptr == pos.region_ptr) {
             // matching value = find sprite for given entity
             sprite_found = sc_map_get_64v(&gs->Sprite_map, key);
+            if (!sc_map_found(&gs->Sprite_map)) err_entity_not_found();
             if (sprite_found->draw_priority > best) {
                 best = sprite_found->draw_priority;
                 sprite_to_draw = sprite_found;
@@ -33,9 +36,27 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
     }
 }
 
-bool attempt_move(EntityID entity, Direction dir, int distance) { 
+bool attempt_move(GameState* gs, EntityID entity, Direction dir, int distance) {
+    //loop and store of matches
+    EntityID *key;
+    Position *value;
+    size_t entities_found = 0;
+    Allocator entity_allocator;
+    page_alloc(entity_allocator, EntityID)
+    
+    Position* origin_ptr = sc_map_get_64v(&gs->Position_map, entity);
+    if (!sc_map_found(&gs->Position_map)) err_entity_not_found();
+    Position destination = calc_destination(*origin_ptr, dir, distance);
 
-    return false; 
+    sc_map_foreach(&gs->Position_map, key, value){
+        if(cmp_pos(value, &destination)){
+            entities_found++;
+            page_realloc(entity_allocator, EntityID, entities_found);
+        }
+    }
+
+
+    return false;
 }
 
 ADD_COMPONENT_FUNC(Position);
@@ -44,8 +65,7 @@ FREE_COMPONENT_FUNC(Position);
 Position calc_destination(Position origin, Direction dir, int distance) {
     Position ret_val;
     ret_val.region_ptr = origin.region_ptr;
-
-    // TODO ACCOUNT FOR BLOCKING ETC
+    
     switch (dir) {
         case DIR_N:
             ret_val.column = origin.column;
@@ -113,6 +133,13 @@ void change_position(Position* pos, Position dest) {
     }
 }
 
+bool cmp_pos(Position* a, Position* b) {
+    if(a->region_ptr != b->region_ptr) return false;
+    if(a->column != b->column) return false;
+    if(a->row != b->row) return false; 
+    return true;
+}
+
 static Direction is_border(Position pos) {
     if (pos.row == ROWS - 1) {
         return DIR_S;
@@ -131,6 +158,4 @@ static Direction is_border(Position pos) {
 
 // HAVE TO SHIFT US TO A VALID TILE IN THE NEW SPOT
 // TODO ADJUST REGION GEN TO ALLOW THIS
-static void change_region(Direction dir, Position* pos) {
-
-}
+static void change_region(Direction dir, Position* pos) {}
