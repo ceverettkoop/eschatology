@@ -6,6 +6,7 @@
 #include "../gamestate.h"
 #include "../error.h"
 #include "component.h"
+#include <stdbool.h>
 
 struct Region_tag;
 
@@ -31,7 +32,7 @@ typedef enum{
 ADD_COMPONENT_DECL(Position);
 FREE_COMPONENT_DECL(Position);
 SpriteID determine_sprite(Position pos, GameState *gs);
-bool attempt_move(GameState* gs, EntityID entity, Direction dir, int distance);
+bool attempt_move(GameState* gs, EntityID entity, Direction dir);
 
 
 #endif /* POSITION_H */

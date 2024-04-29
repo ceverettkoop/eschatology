@@ -2,12 +2,13 @@
 
 #include "../error.h"
 #include "region.h"
-#include "../memory.h"
+#include "vector.h"
+#include "tile.h"
 
-static bool cmp_pos(Position *a, Position *b);
+static bool cmp_pos(Position* a, Position* b);
 static Direction is_border(Position pos);
 static void change_region(Direction dir, Position* pos);
-static Position calc_destination(Position origin, Direction dir, int distance);
+static Position calc_destination(Position origin, Direction dir);
 void change_position(Position* pos, Position dest);
 
 SpriteID determine_sprite(Position pos, GameState* gs) {
@@ -36,68 +37,79 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
     }
 }
 
-bool attempt_move(GameState* gs, EntityID entity, Direction dir, int distance) {
-    //loop and store of matches
-    EntityID *key;
-    Position *value;
-    size_t entities_found = 0;
-    Allocator entity_allocator;
-    page_alloc(entity_allocator, EntityID)
-    
+bool attempt_move(GameState* gs, EntityID entity, Direction dir) {
+    EntityID* key;
+    Position* value;
+    Vector entities_found = new_vector(sizeof(EntityID));
     Position* origin_ptr = sc_map_get_64v(&gs->Position_map, entity);
     if (!sc_map_found(&gs->Position_map)) err_entity_not_found();
-    Position destination = calc_destination(*origin_ptr, dir, distance);
+    Position destination = calc_destination(*origin_ptr, dir);
 
-    sc_map_foreach(&gs->Position_map, key, value){
-        if(cmp_pos(value, &destination)){
-            entities_found++;
-            page_realloc(entity_allocator, EntityID, entities_found);
+    sc_map_foreach(&gs->Position_map, key, value) {
+        if (cmp_pos(value, &destination)) {
+            vec_push_back(&entities_found, &value, 1);
         }
     }
 
+    for (size_t i = 0; i < entities_found.size; i++) {
+        EntityID id = VEC_GET(entities_found, EntityID, i);
+        //check for impassable tile
+        Tile *tile = sc_map_get_64v(&gs->Tile_map, id);
+        if(tile)
+            if(!tile->passable) goto IMPASSABLE;
+        //check for collision
+    
+    }
 
+PASSABLE:
+    change_position(origin_ptr, destination);
+    free_vec(&entities_found);
+    return true;
+
+IMPASSABLE:
+    free_vec(&entities_found);
     return false;
 }
 
 ADD_COMPONENT_FUNC(Position);
 FREE_COMPONENT_FUNC(Position);
 
-Position calc_destination(Position origin, Direction dir, int distance) {
+Position calc_destination(Position origin, Direction dir) {
     Position ret_val;
     ret_val.region_ptr = origin.region_ptr;
-    
+
     switch (dir) {
         case DIR_N:
             ret_val.column = origin.column;
-            ret_val.row = origin.row - distance;
+            ret_val.row = origin.row - 1;
             break;
         case DIR_NE:
-            ret_val.column = origin.column + distance;
+            ret_val.column = origin.column + 1;
             ret_val.row = origin.row - 1;
             break;
         case DIR_E:
-            ret_val.column = origin.column + distance;
+            ret_val.column = origin.column + 1;
             ret_val.row = origin.row;
             break;
         case DIR_SE:
-            ret_val.column = origin.column + distance;
-            ret_val.row = origin.row + distance;
+            ret_val.column = origin.column + 1;
+            ret_val.row = origin.row + 1;
             break;
         case DIR_S:
             ret_val.column = origin.column;
-            ret_val.row = origin.row + distance;
+            ret_val.row = origin.row + 1;
             break;
         case DIR_SW:
-            ret_val.column = origin.column - distance;
-            ret_val.row = origin.row + distance;
+            ret_val.column = origin.column - 1;
+            ret_val.row = origin.row + 1;
             break;
         case DIR_W:
-            ret_val.column = origin.column - distance;
+            ret_val.column = origin.column - 1;
             ret_val.row = origin.row;
             break;
         case DIR_NW:
-            ret_val.column = origin.column - distance;
-            ret_val.row = origin.row - distance;
+            ret_val.column = origin.column - 1;
+            ret_val.row = origin.row - 1;
             break;
         default:
             break;
@@ -134,9 +146,9 @@ void change_position(Position* pos, Position dest) {
 }
 
 bool cmp_pos(Position* a, Position* b) {
-    if(a->region_ptr != b->region_ptr) return false;
-    if(a->column != b->column) return false;
-    if(a->row != b->row) return false; 
+    if (a->region_ptr != b->region_ptr) return false;
+    if (a->column != b->column) return false;
+    if (a->row != b->row) return false;
     return true;
 }
 
