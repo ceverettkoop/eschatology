@@ -37,7 +37,7 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
     }
 }
 
-bool attempt_move(GameState* gs, EntityID entity, Direction dir) {
+MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir) {
     EntityID* key;
     Position* value;
     Vector entities_found = new_vector(sizeof(EntityID));
@@ -53,22 +53,25 @@ bool attempt_move(GameState* gs, EntityID entity, Direction dir) {
 
     for (size_t i = 0; i < entities_found.size; i++) {
         EntityID id = VEC_GET(entities_found, EntityID, i);
-        //check for impassable tile
+        //exit on impassable tile
         Tile *tile = sc_map_get_64v(&gs->Tile_map, id);
         if(tile)
-            if(!tile->passable) goto IMPASSABLE;
-        //check for collision
+            if(!tile->passable){
+                free_vec(&entities_found);
+                return IMPASSABLE;
+            }
+        //check for interaction that takes place of move
+        Interaction *intr = sc_map_get64v(&gs->Interaction_map, id);
+        if(intr){
+            free_vec(&entities_found);
+            return ACTION;
+        }
     
     }
-
-PASSABLE:
+    //default case is we moved, move now
+    free_vec(&entities_found);
     change_position(origin_ptr, destination);
-    free_vec(&entities_found);
-    return true;
-
-IMPASSABLE:
-    free_vec(&entities_found);
-    return false;
+    return MOVED;
 }
 
 ADD_COMPONENT_FUNC(Position);
@@ -170,4 +173,8 @@ static Direction is_border(Position pos) {
 
 // HAVE TO SHIFT US TO A VALID TILE IN THE NEW SPOT
 // TODO ADJUST REGION GEN TO ALLOW THIS
-static void change_region(Direction dir, Position* pos) {}
+static void change_region(Direction dir, Position* pos) {
+
+
+
+}

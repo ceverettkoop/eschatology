@@ -28,11 +28,17 @@ typedef enum{
     DIR_NONE
 } Direction;
 
+typedef enum{
+    IMPASSABLE,
+    ACTION,
+    MOVED
+} MoveResult;
+
 
 ADD_COMPONENT_DECL(Position);
 FREE_COMPONENT_DECL(Position);
 SpriteID determine_sprite(Position pos, GameState *gs);
-bool attempt_move(GameState* gs, EntityID entity, Direction dir);
+MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir);
 
 
 #endif /* POSITION_H */
