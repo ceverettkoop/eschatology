@@ -4,11 +4,12 @@
 #include "region.h"
 #include "vector.h"
 #include "tile.h"
+#include "interaction.h"
 
 static bool cmp_pos(Position* a, Position* b);
 static Direction is_border(Position pos);
 static void change_region(Direction dir, Position* pos);
-static Position calc_destination(Position origin, Direction dir);
+Position calc_destination(Position origin, Direction dir);
 void change_position(Position* pos, Position dest);
 
 SpriteID determine_sprite(Position pos, GameState* gs) {
@@ -37,7 +38,7 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
     }
 }
 
-MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir) {
+MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir, Interaction *result) {
     EntityID* key;
     Position* value;
     Vector entities_found = new_vector(sizeof(EntityID));
@@ -64,9 +65,9 @@ MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir) {
         Interaction *intr = sc_map_get64v(&gs->Interaction_map, id);
         if(intr){
             free_vec(&entities_found);
+            *result = *intr;
             return ACTION;
         }
-    
     }
     //default case is we moved, move now
     free_vec(&entities_found);
