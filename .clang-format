@@ -3,3 +3,4 @@ IndentWidth: 4
 ColumnLimit: 120
 AlignAfterOpenBracket: DontAlign
 PackConstructorInitializers: Never
+AllowShortEnumsOnASingleLine: false

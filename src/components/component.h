@@ -1,6 +1,9 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
+#include "../entityid.h"
+#include "../error.h"
+
 #define TYPE_MAP(type) type##_map
 
 #define ADD_FUNC_NAME(type) add_##type

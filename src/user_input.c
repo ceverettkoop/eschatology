@@ -3,10 +3,12 @@
 #include "error.h"
 
 bool is_player_action(UserInput input){
-    return input;
+    // placeholder
+    return true;
 }
 
 bool is_ui_action(UserInput input){
+    // placeholder
     return false;
 }
 
@@ -41,6 +43,7 @@ UserInput get_user_input(){
         return PASS_TURN;
         break;
     default:
+        return NO_INPUT;
         break;
     }
 }
@@ -72,7 +75,7 @@ Direction user_input_to_dir(UserInput user_in) {
         return DIR_NW;
         break;                                              
     default:
-        fatal_err_generic("invalid input conversion to direction\n");
+        return DIR_NONE;
         break;
     }
     

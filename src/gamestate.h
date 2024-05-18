@@ -2,10 +2,9 @@
 #define GAMESTATE_H
 
 #include <stdint.h>
-#include "user_input.h"
+#include "entityid.h"
 #include "sc_map.h"
-
-typedef uint64_t EntityID;
+    
 struct Region_tag;
 
 typedef struct EntityNode_tag{
@@ -32,5 +31,7 @@ void gs_deinit(GameState *gs);
 
 EntityID new_entity(GameState *gs);
 void free_entity(EntityID id, GameState *gs);
+
+EntityID get_player_id();
 
 #endif /* GAMESTATE_H */

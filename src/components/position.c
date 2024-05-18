@@ -1,10 +1,10 @@
 #include "position.h"
 
 #include "../error.h"
-#include "region.h"
-#include "vector.h"
-#include "tile.h"
+#include "../vector.h"
 #include "interaction.h"
+#include "region.h"
+#include "tile.h"
 
 static bool cmp_pos(Position* a, Position* b);
 static Direction is_border(Position pos);
@@ -38,8 +38,8 @@ SpriteID determine_sprite(Position pos, GameState* gs) {
     }
 }
 
-MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir, Interaction *result) {
-    EntityID* key;
+MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir, Interaction* result) {
+    EntityID key;
     Position* value;
     Vector entities_found = new_vector(sizeof(EntityID));
     Position* origin_ptr = sc_map_get_64v(&gs->Position_map, entity);
@@ -54,22 +54,22 @@ MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir, Interacti
 
     for (size_t i = 0; i < entities_found.size; i++) {
         EntityID id = VEC_GET(entities_found, EntityID, i);
-        //exit on impassable tile
-        Tile *tile = sc_map_get_64v(&gs->Tile_map, id);
-        if(tile)
-            if(!tile->passable){
+        // exit on impassable tile
+        Tile* tile = sc_map_get_64v(&gs->Tile_map, id);
+        if (tile)
+            if (!tile->passable) {
                 free_vec(&entities_found);
                 return IMPASSABLE;
             }
-        //check for interaction that takes place of move
-        Interaction *intr = sc_map_get64v(&gs->Interaction_map, id);
-        if(intr){
+        // check for interaction that takes place of move
+        Interaction* intr = sc_map_get_64v(&gs->Interaction_map, id);
+        if (intr) {
             free_vec(&entities_found);
             *result = *intr;
             return ACTION;
         }
     }
-    //default case is we moved, move now
+    // default case is we moved, move now
     free_vec(&entities_found);
     change_position(origin_ptr, destination);
     return MOVED;
@@ -174,8 +174,4 @@ static Direction is_border(Position pos) {
 
 // HAVE TO SHIFT US TO A VALID TILE IN THE NEW SPOT
 // TODO ADJUST REGION GEN TO ALLOW THIS
-static void change_region(Direction dir, Position* pos) {
-
-
-
-}
+static void change_region(Direction dir, Position* pos) {}

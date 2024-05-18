@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "user_input.h"
 #include "gamestate.h"
 #include "error.h"
 #include "sc_map.h"
@@ -63,6 +64,9 @@ void free_entity(EntityID id, GameState *gs){
     free(cur);
 }
 
+EntityID get_player_id() { 
+    return player_entity_id; 
+}
 
 static inline EntityID init_entity_list(GameState *gs) {
     EntityID init_id = 0;

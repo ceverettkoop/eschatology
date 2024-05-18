@@ -12,6 +12,7 @@ EntityID create_player(GameState *gs){
     add_Name(name_id, (Name){"Player"}, gs);
     add_Position(name_id, PLAYER_ORIGIN_POS, gs);
     add_Sprite(name_id, SPRITE_PLAYER, gs);
+    return name_id;
 }
 
 void free_player(EntityID id, GameState *gs){

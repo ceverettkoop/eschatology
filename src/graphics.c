@@ -1,7 +1,8 @@
-#include "graphics.h"
-
 #include <stdio.h>
 #include <string.h>
+
+#include "gamestate.h"
+#include "graphics.h"
 
 #include "components/position.h"
 #include "components/sprite.h"
