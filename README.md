@@ -8,7 +8,7 @@ sc https://github.com/tezc/sc (uses the sc_map hashmap)
 
 Instructions:  
 On Linux with raylib installed as a shared library the commands below should just work. On OSX I had to build raylib as a static library and 
-leave it in /raylib/src. On Windows either of the above methods should work with MinGW but haven't tested.  
+leave it in /lib. On Windows either of the above methods should work with MinGW but haven't tested.  
 
 
 ```

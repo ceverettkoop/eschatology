@@ -1,14 +1,18 @@
 #ifndef INTERACTION_H
 #define INTERACTION_H
 
-#include "sc_map.h"
-#include "component.h"
 #include "../gamestate.h"
+#include "component.h"
+#include "sc_map.h"
 
 // if something that is not a tile will interact with the player when it is moved onto their tile, this component
 // indicates that
 
-typedef enum { INTR_FIGHT, INTR_TRANSPORT, INTR_IMPASSABLE } InteractionResult;
+typedef enum {
+    INTR_FIGHT,
+    INTR_TRANSPORT,
+    INTR_IMPASSABLE
+} InteractionResult;
 
 typedef struct Interaction_tag {
     InteractionResult interaction;

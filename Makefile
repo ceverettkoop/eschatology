@@ -20,7 +20,7 @@ BINDIR=bin
 
 CFLAGS = -ggdb -fsanitize=address
 IFLAGS = -Iraylib/src -Icomponents -isystem include
-LDFLAGS =
+LDFLAGS = -L./lib
 LDLIBS = -lraylib
 CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 \
@@ -29,7 +29,7 @@ CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
 -Werror=implicit -Werror=incompatible-pointer-types -Werror=int-conversion \
 
 ifeq ($(PLATFORM),OSX)
-	LDFLAGS += -L./raylib/src -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+	LDFLAGS += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 endif
 
 SRCS := $(wildcard $(SRCDIR)/*.c)
