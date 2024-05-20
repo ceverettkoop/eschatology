@@ -8,6 +8,6 @@
 #define SCALE_FACTOR 2
 
 void init_graphics();
-void draw_frame(GameState *gs);
+void draw_frame(GameState *gs, Position player_loc);
 
 #endif /* GRAPHICS_H */
