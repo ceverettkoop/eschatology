@@ -135,6 +135,13 @@ Position calc_destination(Position origin, Direction dir) {
     return ret_val;
 }
 
+bool pos_is_valid(Position pos) { 
+    if(pos.row < 0 || pos.row >= ROWS || pos.column < 0 || pos.column >= COLUMNS){
+        return false;
+    }
+    return true; 
+}
+
 void change_position(Position* pos, Position dest) {
     // if it's a border, change our region
     Direction border_dir = is_border(dest);

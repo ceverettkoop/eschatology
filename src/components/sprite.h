@@ -13,11 +13,15 @@
 #define SPRITE_DOOR (Sprite){3,1}
 #define SPRITE_WALL (Sprite){4,1}
 #define SPRITE_STONEFLOOR (Sprite){5,1}
-#define SPRITE_COUNT 6
+#define SPRITE_BLANK (Sprite){6,0}
+#define SPRITE_COUNT 7
 #define SMALL_SPRITES_IMPLEMENTED 3
 
 #define SMALL_SPRITE_WIDTH 6
 #define SMALL_SPRITE_HEIGHT 12
+
+#define LARGE_SPRITE_WIDTH 12
+#define LARGE_SPRITE_HEIGHT 24
 
 //corresponds to a small sprite and a big sprite
 typedef uint32_t SpriteID;

@@ -41,5 +41,6 @@ FREE_COMPONENT_DECL(Position);
 SpriteID determine_sprite(Position pos, GameState *gs);
 MoveResult attempt_move(GameState *gs, EntityID entity, Direction dir, Interaction *result);
 Position calc_destination(Position origin, Direction dir);
+bool pos_is_valid(Position pos);
 
 #endif /* POSITION_H */
