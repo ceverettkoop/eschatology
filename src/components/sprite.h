@@ -13,7 +13,7 @@
 #define SPRITE_DOOR (Sprite){3,1}
 #define SPRITE_WALL (Sprite){4,1}
 #define SPRITE_STONEFLOOR (Sprite){5,1}
-#define SPRITE_BLANK (Sprite){6,0}
+#define SPRITE_BLANK (Sprite){6,9}
 #define SPRITE_COUNT 7
 #define SMALL_SPRITES_IMPLEMENTED 3
 
