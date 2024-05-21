@@ -15,7 +15,7 @@
 static const Vector2 REGION_ORIGIN = (Vector2){6, 4};
 static const int INSET_RANGE_FROM_CENTER = 3;
 static const int INSET_TILE_RANGE = (INSET_RANGE_FROM_CENTER * 2) + 1;
-static const Vector2 INSET_ORIGIN = (Vector2){6, 144};
+static const Vector2 INSET_ORIGIN = (Vector2){6, 250};
 
 static Image small_sprite_pngs[SPRITE_COUNT];
 static Texture2D small_sprites[SPRITE_COUNT];
@@ -26,10 +26,14 @@ static Texture2D large_sprites[SPRITE_COUNT];
 static void draw_region_map(GameState *gs);
 static void draw_inset_map(GameState *gs, Position loc);
 static void load_small_sprite_texture(SpriteID id);
+static void load_large_sprite_texture(SpriteID id);
 
 void init_graphics() {
-    for (SpriteID i = 0; i < SMALL_SPRITES_IMPLEMENTED; i++) {
+    for (SpriteID i = 0; i < SPRITES_IMPLEMENTED; i++) {
         load_small_sprite_texture(i);
+    }
+    for (SpriteID i = 0; i < SPRITES_IMPLEMENTED; i++) {
+        load_large_sprite_texture(i);
     }
 };
 
@@ -42,7 +46,7 @@ void draw_frame(GameState *gs, Position player_loc) {
     ClearBackground(WHITE);
     draw_region_map(gs);
     // draw UI here
-    //draw_inset_map(gs, player_loc);
+    draw_inset_map(gs, player_loc);
     EndTextureMode();
 
     BeginDrawing();
@@ -91,4 +95,12 @@ static void load_small_sprite_texture(SpriteID id) {
     small_sprite_pngs[id] = LoadImage(path);
     small_sprites[id] = LoadTextureFromImage(small_sprite_pngs[id]);
     UnloadImage(small_sprite_pngs[id]);
+}
+
+static void load_large_sprite_texture(SpriteID id) {
+    char path[MAX_PATH_LEN];
+    snprintf(path, MAX_PATH_LEN - 1, "../resources/sprites/large/%d.png", id);
+    large_sprite_pngs[id] = LoadImage(path);
+    large_sprites[id] = LoadTextureFromImage(large_sprite_pngs[id]);
+    UnloadImage(large_sprite_pngs[id]);
 }

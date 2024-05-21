@@ -9,19 +9,21 @@
 #define SPRITE_GRASS (Sprite){0,0}
 #define SPRITE_MOUNTAIN (Sprite){1,0}
 #define SPRITE_PLAYER (Sprite){2,9}
+#define SPRITE_BLANK (Sprite){4,9}
 
-#define SPRITE_DOOR (Sprite){3,1}
-#define SPRITE_WALL (Sprite){4,1}
-#define SPRITE_STONEFLOOR (Sprite){5,1}
-#define SPRITE_BLANK (Sprite){6,9}
+#define SPRITES_IMPLEMENTED 4
+
+#define SPRITE_DOOR (Sprite){5,1}
+#define SPRITE_WALL (Sprite){6,1}
+#define SPRITE_STONEFLOOR (Sprite){7,1}
+
 #define SPRITE_COUNT 7
-#define SMALL_SPRITES_IMPLEMENTED 3
 
 #define SMALL_SPRITE_WIDTH 6
 #define SMALL_SPRITE_HEIGHT 12
 
-#define LARGE_SPRITE_WIDTH 12
-#define LARGE_SPRITE_HEIGHT 24
+#define LARGE_SPRITE_WIDTH 16
+#define LARGE_SPRITE_HEIGHT 32
 
 //corresponds to a small sprite and a big sprite
 typedef uint32_t SpriteID;
