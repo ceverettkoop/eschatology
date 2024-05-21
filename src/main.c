@@ -31,7 +31,9 @@ int main(int argc, char const *argv[]) {
             // update_ui, make ui.h
         }
         // draw
-        draw_frame(gs);
+        Position *cur_pos = sc_map_get_64v(&gs->Position_map, player_id);
+        if(!cur_pos) err_entity_not_found();
+        draw_frame(gs, *cur_pos);
     }
 
     return 0;

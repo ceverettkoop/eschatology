@@ -42,7 +42,7 @@ void draw_frame(GameState *gs, Position player_loc) {
     ClearBackground(WHITE);
     draw_region_map(gs);
     // draw UI here
-    draw_inset_map(gs, player_loc);
+    //draw_inset_map(gs, player_loc);
     EndTextureMode();
 
     BeginDrawing();
@@ -59,16 +59,14 @@ static void draw_region_map(GameState *gs) {
             Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT};
             Vector2 origin = Vector2Add(offset, REGION_ORIGIN);
             Position pos = {.row = i, .column = n, .region_ptr = reg_ptr};
-            Texture2D sprite = large_sprites[determine_sprite(pos, gs)];
-            DrawTexture(sprite, origin.x, origin.y, WHITE);
+            Texture2D sprite = small_sprites[determine_sprite(pos, gs)];
+            DrawTexture(sprite, (int)origin.x, (int)origin.y, WHITE);
         }
     }
 }
 
 static void draw_inset_map(GameState *gs, Position loc) {
     Region *reg_ptr = gs->cur_region_ptr;
-    int center_row = loc.row;
-    int center_column = loc.column;
     // out of bounds values expected here:
     int pos_row_offset = loc.row - INSET_RANGE_FROM_CENTER;
     int pos_column_offset = loc.column - INSET_RANGE_FROM_CENTER;
@@ -82,7 +80,7 @@ static void draw_inset_map(GameState *gs, Position loc) {
             // out of range positions rendered blank
             Texture2D sprite =
                 pos_is_valid(pos) ? large_sprites[determine_sprite(pos, gs)] : large_sprites[SPRITE_BLANK.id];
-            DrawTexture(sprite, origin.x, origin.y, WHITE);
+            DrawTexture(sprite, (int)origin.x, (int)origin.y, WHITE);
         }
     }
 }
