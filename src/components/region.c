@@ -8,6 +8,7 @@
 #include "sc_map.h"
 #include "sprite.h"
 #include "tile.h"
+#include "../regiontemplate.h"
 
 static Region *init_region(EntityID id, GameState *gs);
 static void create_tiles(Region *p, GameState *gs);
@@ -16,6 +17,7 @@ static void gen_straight_tile_line(
 static void generate_boundaries(Region *p, GameState *gs);
 static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count,
     Sprite sprite, Tile tile, GameState *gs);
+static void gen_rooms(Region *p, RegionTemplate *template);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
