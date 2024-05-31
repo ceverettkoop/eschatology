@@ -4,6 +4,7 @@
 #include "component.h"
 #include "../gamestate.h"
 #include "../user_input.h"
+#include "../regiontemplate.h"
 
 #define REGION_WIDTH 105
 #define REGION_HEIGHT 20
@@ -24,9 +25,9 @@ struct Region_tag {
 
 ADD_COMPONENT_DECL(Region);
 FREE_COMPONENT_DECL(Region);
-Region *generate_region(GameState *gs, EntityID *_id);
+Region *generate_region(GameState *gs, EntityID *_id, RegionTemplate template);
 //TODO free regions I guess although they just get freed at program exit
-void generate_neighbors(EntityID id, GameState *gs);
+void generate_neighbors(EntityID id, GameState *gs, RegionTemplate template);
 void update_region(Region *region_ptr, UserInput input);
 
 #endif /* REGION_H */
