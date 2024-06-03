@@ -1,15 +1,15 @@
 #include "region.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <time.h>
-#include <limits.h>
 
 #include "../error.h"
+#include "../regiontemplate.h"
 #include "position.h"
 #include "sc_map.h"
 #include "sprite.h"
 #include "tile.h"
-#include "../regiontemplate.h"
 
 static Region *init_region(EntityID id, GameState *gs, RegionTemplate template);
 static void create_tiles(Region *p, GameState *gs, Sprite background);
@@ -19,7 +19,8 @@ static void generate_boundaries(Region *p, GameState *gs);
 static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count,
     Sprite sprite, Tile tile, GameState *gs);
 static void gen_rooms(Region *p, RegionTemplate template);
-static int bsp_iterate(void *_matrix, int *itr);
+static void bsp_iterate(void *_matrix, int itr);
+static void partition_room(void *_matrix, int room_id, int new_id);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
@@ -41,7 +42,7 @@ static Region *init_region(EntityID id, GameState *gs, RegionTemplate template) 
 
     // region creation = creation of tile entities with position component that points to this region
     create_tiles(region_ptr, gs, template.default_background);
-    generate_rooms(region_ptr, template);
+    gen_rooms(region_ptr, template);
     generate_boundaries(region_ptr, gs);  // includes exits
     return region_ptr;
 }
@@ -104,23 +105,23 @@ static void generate_boundaries(Region *p, GameState *gs) {
     // north
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
-    gen_rand_tile_line(
-        (Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
+    gen_rand_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS,
+        (Tile){.passable = true}, gs);
     // west
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_WIDTH, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
-    gen_rand_tile_line(
-        (Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_HEIGHT, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
+    gen_rand_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_HEIGHT, 1, 6, SPRITE_GRASS,
+        (Tile){.passable = true}, gs);
     // south
     gen_straight_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH,
         SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line(
-        (Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS, (Tile){.passable = true}, gs);
+    gen_rand_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6,
+        SPRITE_GRASS, (Tile){.passable = true}, gs);
     // east
     gen_straight_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_WIDTH,
         SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT, 1, 6, SPRITE_GRASS,
-        (Tile){.passable = true}, gs);
+    gen_rand_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT, 1, 6,
+        SPRITE_GRASS, (Tile){.passable = true}, gs);
 }
 
 static void gen_straight_tile_line(
@@ -168,7 +169,6 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
         } else {
             row = origin.row + offset;
             if (row >= ROWS) continue;
-
         }
         to_change_id = origin.region_ptr->tile_ids[row][col];
         sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
@@ -181,41 +181,98 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 }
 
 void gen_rooms(Region *p, RegionTemplate template) {
-    const int count = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) + template.room_ct_range[R_MIN];
-    const int min_sz = template.room_sz_range[R_MIN];
-    
-    //generate dummy grid to seperate into regions and init to 0
+    const int count = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) +
+                      template.room_ct_range[R_MIN];
+
+    // generate dummy grid to seperate into regions and init to 0
     int space_matrix[ROWS][COLUMNS];
-    int *cur = space_matrix;
-    for (size_t i = 0; i < REGION_AREA; i++){
+    int *cur = (int*)space_matrix;
+    for (size_t i = 0; i < REGION_AREA; i++) {
         *cur = 0;
         cur++;
     }
-    //binary space partitioning until min room size exists
-    int smallest_room_found = INT_MAX;
-    int itr = 0;
-    while(smallest_room_found > min_sz){
-        smallest_room_found = bsp_iterate(space_matrix, &itr);
+    for (int i = 0; i < template.bsp_iterations; i++) {
+        bsp_iterate(space_matrix, i);
+    }
+    //now do something with the rooms ughhh
+
+}
+
+static void bsp_iterate(void *_matrix, int itr) {
+    // iterate over each previous iteration once, iteration 0 just blank space
+    // sweep whole map but only increment matching values
+    int new_id;
+    int end_id;
+    if (itr == 0){
+        new_id = 1;
+        end_id = 2;
+    }else{
+        new_id = itr * itr;
+        end_id = ((itr + 1) * (itr + 1));
+    }
+    for (int room_id = 0; new_id < end_id; room_id++, new_id++){
+        partition_room(_matrix, room_id, new_id);
     }
 }
 
-static int bsp_iterate(void *_matrix, int *itr){
-    //iterate over each previous iteration once, iteration 0 just blank space
-    //sweep whole map but only increment matching values
-    int (*matrix)[REGION_AREA] = _matrix;
-    for (size_t i = 0; i < *itr; i++){
-        bool split_rows = (rand()  > rand());
-        int split_point = split_rows ? ROWS * rand() : COLUMNS * rand();
-        if(split_rows){
-            for (size_t row = 0; row < ROWS - split_point; row++){
-                for (size_t col = 0; col < COLUMNS; col++){
-                    //this part needs to allow for branching designations not increments uhhh
-                    if ( matrix[row][col] == itr - 1){
-                        ((matrix)[row][col])++;
-                    }
-                }
+void partition_room(void *_matrix, int room_id, int new_id) {
+    //define extent of room defined by given id
+    int *cur = _matrix;
+    int(*matrix)[REGION_AREA] = _matrix;
+    int tl = -1;
+    int br;
+    int min_row;
+    int min_col;
+    int max_row;
+    int max_col;
+    int room_area;
+    //define top left on first note of id, define bottom right on last
+    for (size_t i = 0; i < REGION_AREA; i++, cur++){
+        if(tl == -1){
+            if(*cur == room_id){
+                tl = i;
             }
-            
+        }else{
+            if(*cur == room_id){
+                br = i;
+            }
+        }
+    }
+    //convert abs coordinate to row/col
+    min_col = tl % COLUMNS;
+    min_row = (int)(tl / ROWS);
+    max_col = br % COLUMNS;
+    max_row = (int)(br / ROWS);
+    room_area = (max_col - min_col) * (max_row - min_row);
+
+    //now split the room
+    bool split_rows = (rand() > rand());
+    int split_point;
+    if (split_rows){
+        split_point = rand() / (RAND_MAX / (max_row - min_row)) + min_row;
+        for (int i = 0, row = min_row, col = min_col; i < room_area; i++){
+            if(row > split_point){
+                matrix[row][col] = new_id;
+            }
+            if(col == max_col){
+                row++;
+                col = min_col;
+            }else{
+                col++;
+            }
+        }
+    }else{
+        split_point = rand() / (RAND_MAX / (max_col - min_col)) + min_col;
+        for (int i = 0, row = min_row, col = min_col; i < room_area; i++){
+            if(col > split_point){
+                matrix[row][col] = new_id;
+            }
+            if(col == max_col){
+                row++;
+                col = min_col;
+            }else{
+                col++;
+            }
         }
     }
 }

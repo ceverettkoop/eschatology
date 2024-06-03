@@ -8,7 +8,7 @@
 
 typedef struct RegionTemplate_tag{
     int room_ct_range[2];
-    int room_sz_range[2];
+    int bsp_iterations;
     int exit_count_opp[2];
     int exit_count_l[2];
     int exit_count_r[2];

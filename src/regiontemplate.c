@@ -3,8 +3,7 @@
 const RegionTemplate DEFAULT_REGION = {
     .room_ct_range[R_MIN] = 1,
     .room_ct_range[R_MAX] = 5,
-    .room_sz_range[R_MIN] = 10,
-    .room_sz_range[R_MAX] = 30,
+    .bsp_iterations = 4,
     .exit_count_opp[R_MIN] = 1,
     .exit_count_opp[R_MAX] = 5,
     .exit_count_l[R_MIN] = 1,
