@@ -19,6 +19,19 @@ Vector new_vector(size_t element_size) {
     return ret_val;
 }
 
+int vec_contains(Vector* p, void* value) { 
+    void *cur = p->data;
+    int offset = 0;
+    while(offset != p->element_size * p->size){
+        if(memcmp(cur, value, p->element_size) == 0){
+            return 1;
+        }
+        cur += p->element_size;
+        offset += p->element_size;
+    }
+    return 0;
+}
+
 void vec_push_back(Vector* ptr, void* element, size_t n) {
     bool resize = false;
     size_t offset = 0;

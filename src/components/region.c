@@ -7,6 +7,7 @@
 
 #include "../error.h"
 #include "../regiontemplate.h"
+#include "../vector.h"
 #include "position.h"
 #include "sc_map.h"
 #include "sprite.h"
@@ -22,6 +23,7 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 static void gen_rooms(Region *p, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
+static void consolidate_rooms(void *_matrix, int room_ct);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
@@ -195,17 +197,8 @@ void gen_rooms(Region *p, RegionTemplate template) {
     for (int i = 0; i < template.bsp_iterations; i++) {
         bsp_iterate(space_matrix, i);
     }
-    //now do something with the rooms ughhh
-    cur = space_matrix;
-    printf("AREA MAP AFTER PARTITION:\n");
-    for (size_t n = 0; n < ROWS; n++){
-        for (size_t i = 0; i < COLUMNS; i++){
-            printf("%d", *cur);
-            cur++;
-        }
-        printf("\n");
-    }
-    printf("\n");
+    consolidate_rooms(space_matrix, count);
+
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
@@ -285,4 +278,36 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
             }
         }
     }
+}
+
+void consolidate_rooms(void *_matrix, int room_ct) {
+    Vector found_ids = new_vector(sizeof(int));
+    Vector chosen_ids = new_vector(sizeof(int));
+    int *cur = _matrix;
+    for (size_t i = 0; i < REGION_AREA; i++){
+        if (!vec_contains(&found_ids, cur)){
+            vec_push_back(&found_ids, cur, 1);
+        }
+    }
+    while(chosen_ids.size < room_ct){
+        bool new_id = false;
+        while(new_id == false){
+            int r_index = (rand() / (RAND_MAX / found_ids.size));
+            if(vec_contains(&chosen_ids, &r_index)){
+                vec_push_back(&chosen_ids, &new_id, sizeof(int));
+                new_id = true;
+            }
+        }
+    }
+    //we picked some rooms to consolidate around..
+    for (size_t i = 0; i < room_ct; i++){
+        int room_index = VEC_GET(chosen_ids, int, i);
+        //maybe make finding tl and br a macro..
+    }
+    
+    
+    
+
+    free_vec(&found_ids);
+    free_vec(&chosen_ids);
 }

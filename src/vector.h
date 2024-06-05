@@ -17,6 +17,7 @@ struct vector_tag{
 };
 
 Vector new_vector(size_t element_size);
+int vec_contains(Vector *p, void *value);
 void vec_push_back(Vector* ptr, void* element, size_t n);
 void vec_clear(Vector *ptr);
 void free_vec(Vector *ptr);
