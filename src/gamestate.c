@@ -6,6 +6,7 @@
 #include "components/region.h"
 #include "components/position.h"
 #include "player.h"
+#include "regiontemplate.h"
 
 static inline EntityID init_entity_list(GameState *gs);
 static EntityID player_entity_id;
@@ -23,8 +24,8 @@ void gs_init(GameState *gs) {
 
     player_entity_id = init_entity_list(gs);
     // region
-    gs->cur_region_ptr = generate_region(gs, &init_region_id);
-    generate_neighbors(init_region_id, gs);
+    gs->cur_region_ptr = generate_region(gs, &init_region_id, DEFAULT_REGION);
+    generate_neighbors(init_region_id, gs, DEFAULT_REGION);
 
     // init player
     player_entity_id = create_player(gs);

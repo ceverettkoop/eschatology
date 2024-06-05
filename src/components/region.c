@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 #include "../error.h"
 #include "../regiontemplate.h"
@@ -20,7 +21,7 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
     Sprite sprite, Tile tile, GameState *gs);
 static void gen_rooms(Region *p, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
-static void partition_room(void *_matrix, int room_id, int new_id);
+static void partition_space(void *_matrix, int room_id, int new_id);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
@@ -185,8 +186,8 @@ void gen_rooms(Region *p, RegionTemplate template) {
                       template.room_ct_range[R_MIN];
 
     // generate dummy grid to seperate into regions and init to 0
-    int space_matrix[ROWS][COLUMNS];
-    int *cur = (int*)space_matrix;
+    int *space_matrix = calloc(REGION_AREA, sizeof(int));
+    int *cur = space_matrix;
     for (size_t i = 0; i < REGION_AREA; i++) {
         *cur = 0;
         cur++;
@@ -195,7 +196,16 @@ void gen_rooms(Region *p, RegionTemplate template) {
         bsp_iterate(space_matrix, i);
     }
     //now do something with the rooms ughhh
-
+    cur = space_matrix;
+    printf("AREA MAP AFTER PARTITION:\n");
+    for (size_t n = 0; n < ROWS; n++){
+        for (size_t i = 0; i < COLUMNS; i++){
+            printf("%d", *cur);
+            cur++;
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
@@ -211,14 +221,14 @@ static void bsp_iterate(void *_matrix, int itr) {
         end_id = ((itr + 1) * (itr + 1));
     }
     for (int room_id = 0; new_id < end_id; room_id++, new_id++){
-        partition_room(_matrix, room_id, new_id);
+        partition_space(_matrix, room_id, new_id);
     }
 }
 
-void partition_room(void *_matrix, int room_id, int new_id) {
+static void partition_space(void *_matrix, int room_id, int new_id) {
     //define extent of room defined by given id
     int *cur = _matrix;
-    int(*matrix)[REGION_AREA] = _matrix;
+    int (*matrix)[COLUMNS] = _matrix;
     int tl = -1;
     int br;
     int min_row;
@@ -240,16 +250,16 @@ void partition_room(void *_matrix, int room_id, int new_id) {
     }
     //convert abs coordinate to row/col
     min_col = tl % COLUMNS;
-    min_row = (int)(tl / ROWS);
     max_col = br % COLUMNS;
-    max_row = (int)(br / ROWS);
-    room_area = (max_col - min_col) * (max_row - min_row);
+    min_row = (int) tl / COLUMNS;
+    max_row = (int) br / COLUMNS;
+    room_area = (max_col - min_col + 1) * (max_row - min_row + 1);
 
     //now split the room
     bool split_rows = (rand() > rand());
     int split_point;
     if (split_rows){
-        split_point = rand() / (RAND_MAX / (max_row - min_row)) + min_row;
+        split_point = (rand() / (RAND_MAX / (max_row - min_row))) + min_row;
         for (int i = 0, row = min_row, col = min_col; i < room_area; i++){
             if(row > split_point){
                 matrix[row][col] = new_id;
@@ -262,7 +272,7 @@ void partition_room(void *_matrix, int room_id, int new_id) {
             }
         }
     }else{
-        split_point = rand() / (RAND_MAX / (max_col - min_col)) + min_col;
+        split_point = (rand() / (RAND_MAX / (max_col - min_col))) + min_col;
         for (int i = 0, row = min_row, col = min_col; i < room_area; i++){
             if(col > split_point){
                 matrix[row][col] = new_id;
