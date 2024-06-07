@@ -38,9 +38,12 @@ typedef enum {
 
 ADD_COMPONENT_DECL(Position);
 FREE_COMPONENT_DECL(Position);
+
 SpriteID determine_sprite(Position pos, GameState *gs);
 MoveResult attempt_move(GameState *gs, EntityID entity, Direction dir, Interaction *result);
 Position calc_destination(Position origin, Direction dir);
 bool pos_is_valid(Position pos);
+int pos_to_index(Position pos);
+Position index_to_pos(int index, Region *region);
 
 #endif /* POSITION_H */

@@ -23,7 +23,10 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 static void gen_rooms(Region *p, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
-static void consolidate_rooms(void *_matrix, int room_ct);
+static void consolidate_rooms(void *_matrix, int count);
+static Vector id_adj_rooms(void *_matrix, int room_id);
+
+static const int MAX_ITERATIONS = 100;
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
@@ -280,34 +283,57 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
     }
 }
 
-void consolidate_rooms(void *_matrix, int room_ct) {
+void consolidate_rooms(void *_matrix, int count) {
     Vector found_ids = new_vector(sizeof(int));
-    Vector chosen_ids = new_vector(sizeof(int));
+    Vector rooms_found = new_vector(sizeof(int) * REGION_AREA);
     int *cur = _matrix;
+    int itr_count = 0;
+
     for (size_t i = 0; i < REGION_AREA; i++){
         if (!vec_contains(&found_ids, cur)){
             vec_push_back(&found_ids, cur, 1);
         }
+        cur++;
     }
-    while(chosen_ids.size < room_ct){
-        bool new_id = false;
-        while(new_id == false){
-            int r_index = (rand() / (RAND_MAX / found_ids.size));
-            if(vec_contains(&chosen_ids, &r_index)){
-                vec_push_back(&chosen_ids, &new_id, sizeof(int));
-                new_id = true;
-            }
+
+    while(itr_count < MAX_ITERATIONS && rooms_found.size < count){
+        for (size_t i = 0; i < found_ids.size; i++){
+            int room_id = VEC_GET(found_ids, int, i);
+            Vector adj_rooms = id_adj_rooms(_matrix, room_id);
+            //append adj rooms
+
+            free_vec(&adj_rooms);
         }
+        
+
+        itr_count++;
     }
-    //we picked some rooms to consolidate around..
-    for (size_t i = 0; i < room_ct; i++){
-        int room_index = VEC_GET(chosen_ids, int, i);
-        //maybe make finding tl and br a macro..
-    }
-    
-    
-    
+
 
     free_vec(&found_ids);
-    free_vec(&chosen_ids);
+}
+
+Vector id_adj_rooms(void *_matrix, int room_id) {
+    Vector ret_vec = new_vector(sizeof(int));
+    int *matrix = _matrix;
+    int *cur = _matrix;
+    int adj_value;
+    Position cur_pos;
+
+    //find all neighbors
+    for (size_t i = 0; i < REGION_AREA; i++){
+        if (*cur == room_id){
+            cur_pos = index_to_pos(i, NULL);
+            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_N)));
+            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
+            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_W)));
+            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
+            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_S)));
+            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
+            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_E)));
+            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
+        }
+    }
+
+    return ret_vec;
 }

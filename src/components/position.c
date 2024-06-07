@@ -9,8 +9,7 @@
 static bool cmp_pos(Position* a, Position* b);
 static Direction is_border(Position pos);
 static void change_region(Direction dir, Position* pos);
-Position calc_destination(Position origin, Direction dir);
-void change_position(Position* pos, Position dest);
+static void change_position(Position *pos, Position dest);
 
 SpriteID determine_sprite(Position pos, GameState* gs) {
     DrawPriority best = -1;
@@ -140,6 +139,19 @@ bool pos_is_valid(Position pos) {
         return false;
     }
     return true; 
+}
+
+int pos_to_index(Position pos) {
+    if (!pos_is_valid(pos)) return -1;
+    return pos.column * pos.row;
+}
+
+Position index_to_pos(int index, Region* region) {
+    Position ret_val;
+    ret_val.region_ptr = region;
+    ret_val.column = index % COLUMNS;
+    ret_val.row = (int) index / COLUMNS;
+    return ret_val;
 }
 
 void change_position(Position* pos, Position dest) {
