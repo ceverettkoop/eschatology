@@ -23,7 +23,7 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 static void gen_rooms(Region *p, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
-static bool consolidate_rooms(void *_matrix, int min_room_count, int min_room_sz);
+static void consolidate_rooms(void *_matrix, int min_room_ct, int room_id_max);
 static Vector id_adj_rooms(void *_matrix, int room_id);
 static void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found);
 
@@ -188,7 +188,7 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 }
 
 void gen_rooms(Region *p, RegionTemplate template) {
-    const int count = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) +
+    const int min_room_ct = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) +
                       template.room_ct_range[R_MIN];
 
     // generate dummy grid to seperate into regions and init to 0
@@ -198,11 +198,11 @@ void gen_rooms(Region *p, RegionTemplate template) {
         *cur = 0;
         cur++;
     }
+    //rooms divided for each bsp_iteration
     for (int i = 0; i < template.bsp_iterations; i++) {
         bsp_iterate(space_matrix, i);
     }
-    consolidate_rooms(space_matrix, count);
-
+    consolidate_rooms(space_matrix, min_room_ct, template.bsp_iterations);
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
@@ -284,9 +284,11 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
     }
 }
 
-bool consolidate_rooms(void *_matrix, int min_room_count, int min_room_sz) {
-    Vector found_ids = new_vector(sizeof(int));
-    Vector rooms_found = new_vector(sizeof(int) * REGION_AREA);
+//takes a matrix where the rooms have been partitioned, iterates through room combinations until one is found that meets
+//criteria of min rooms w min size
+void consolidate_rooms(void *_matrix, int min_room_ct, int room_id_max){
+    Vector room_ids = new_vector(sizeof(int));
+    int potential_region[ROWS][COLUMNS];
     int *cur = _matrix;
     int itr_count = 0;
 
@@ -297,7 +299,7 @@ bool consolidate_rooms(void *_matrix, int min_room_count, int min_room_sz) {
         cur++;
     }
 
-    while(rooms_found.size < min_room_count){
+    while(itr_count < MAX_ITERATIONS && possible_regions.size < min_room_ct){
         for (size_t i = 0; i < found_ids.size; i++){
             int room_id = VEC_GET(found_ids, int, i);
             Vector adj_rooms = id_adj_rooms(_matrix, room_id);
