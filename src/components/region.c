@@ -23,8 +23,9 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 static void gen_rooms(Region *p, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
-static void consolidate_rooms(void *_matrix, int count);
+static bool consolidate_rooms(void *_matrix, int min_room_count, int min_room_sz);
 static Vector id_adj_rooms(void *_matrix, int room_id);
+static void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found);
 
 static const int MAX_ITERATIONS = 100;
 
@@ -283,7 +284,7 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
     }
 }
 
-void consolidate_rooms(void *_matrix, int count) {
+bool consolidate_rooms(void *_matrix, int min_room_count, int min_room_sz) {
     Vector found_ids = new_vector(sizeof(int));
     Vector rooms_found = new_vector(sizeof(int) * REGION_AREA);
     int *cur = _matrix;
@@ -296,19 +297,19 @@ void consolidate_rooms(void *_matrix, int count) {
         cur++;
     }
 
-    while(itr_count < MAX_ITERATIONS && rooms_found.size < count){
+    while(rooms_found.size < min_room_count){
         for (size_t i = 0; i < found_ids.size; i++){
             int room_id = VEC_GET(found_ids, int, i);
             Vector adj_rooms = id_adj_rooms(_matrix, room_id);
-            //append adj rooms
-
+            //append adj rooms to current room_id, ignorning rooms found already
+            combine_adj_rooms(_matrix, room_id, &adj_rooms, &rooms_found);
+            if (room_sz(_matrix, room_id) > )
             free_vec(&adj_rooms);
         }
-        
 
         itr_count++;
+        if(itr_count < MAX_ITERATIONS) return 
     }
-
 
     free_vec(&found_ids);
 }
@@ -336,4 +337,14 @@ Vector id_adj_rooms(void *_matrix, int room_id) {
     }
 
     return ret_vec;
+}
+
+void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found) {
+    int *cur = _matrix;
+    for (size_t i = 0; i < REGION_AREA; i++){
+        if ( vec_contains(adj_rooms, *cur) && !vec_contains(rooms_found, *cur)){
+            *cur = room_id;
+        }
+        cur++;
+    }
 }
