@@ -215,6 +215,8 @@ void gen_rooms(Region *p, RegionTemplate template) {
             success = true;
         } 
     }
+
+    //TODO translate matrix into sprite definitions in region
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
