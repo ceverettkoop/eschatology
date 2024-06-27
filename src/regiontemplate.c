@@ -1,7 +1,7 @@
 #include "regiontemplate.h"
 
 const RegionTemplate DEFAULT_REGION = {
-    .room_ct_range[R_MIN] = 1,
+    .room_ct_range[R_MIN] = 2,
     .room_ct_range[R_MAX] = 5,
     .bsp_iterations = 4,
     .exit_count_opp[R_MIN] = 1,

@@ -146,7 +146,7 @@ int pos_to_index(Position pos) {
     return pos.column * pos.row;
 }
 
-Position index_to_pos(int index, Region* region) {
+Position index_to_pos(int index, struct Region_tag* region) {
     Position ret_val;
     ret_val.region_ptr = region;
     ret_val.column = index % COLUMNS;

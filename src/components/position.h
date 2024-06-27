@@ -44,6 +44,6 @@ MoveResult attempt_move(GameState *gs, EntityID entity, Direction dir, Interacti
 Position calc_destination(Position origin, Direction dir);
 bool pos_is_valid(Position pos);
 int pos_to_index(Position pos);
-Position index_to_pos(int index, Region *region);
+Position index_to_pos(int index, struct Region_tag *region);
 
 #endif /* POSITION_H */

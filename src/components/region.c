@@ -1,9 +1,9 @@
 #include "region.h"
 
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdio.h>
 
 #include "../error.h"
 #include "../regiontemplate.h"
@@ -12,6 +12,9 @@
 #include "sc_map.h"
 #include "sprite.h"
 #include "tile.h"
+
+#define MAX_CONSOLIDATIONS 1000
+#define MIN_ROOM_SZ 10
 
 static Region *init_region(EntityID id, GameState *gs, RegionTemplate template);
 static void create_tiles(Region *p, GameState *gs, Sprite background);
@@ -23,11 +26,10 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 static void gen_rooms(Region *p, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
-static void consolidate_rooms(void *_matrix, int min_room_ct, int room_id_max);
+static int consolidate_rooms(void *_matrix, int room_id_max);
 static Vector id_adj_rooms(void *_matrix, int room_id);
 static void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found);
-
-static const int MAX_ITERATIONS = 100;
+static int room_sz(void *_matrix, int room_id);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
@@ -189,20 +191,32 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 
 void gen_rooms(Region *p, RegionTemplate template) {
     const int min_room_ct = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) +
-                      template.room_ct_range[R_MIN];
-
+                            template.room_ct_range[R_MIN];
+    bool success = false;
     // generate dummy grid to seperate into regions and init to 0
     int *space_matrix = calloc(REGION_AREA, sizeof(int));
     int *cur = space_matrix;
-    for (size_t i = 0; i < REGION_AREA; i++) {
-        *cur = 0;
-        cur++;
+    int consolidations = 0;
+
+    while (!success) {
+        // clear matrix
+        for (size_t i = 0; i < REGION_AREA; i++){
+            space_matrix[i] = 0;
+        }
+        // divide rooms per iterations
+        for (int i = 0; i < template.bsp_iterations; i++) {
+            bsp_iterate(space_matrix, i);
+        }
+        // attempt to consolidate rooms and mark success or not
+        success = (min_room_ct < consolidate_rooms(space_matrix, template.bsp_iterations));
+        if (success) printf("SUCCESS:\n");
+        for (size_t i = 0; i < REGION_AREA; i++) {
+            printf("%d", space_matrix[i]);
+            if (!(i % COLUMNS)) printf("\n");
+        }
+        // take what we can get
+        if (consolidations > MAX_CONSOLIDATIONS) success = true;
     }
-    //rooms divided for each bsp_iteration
-    for (int i = 0; i < template.bsp_iterations; i++) {
-        bsp_iterate(space_matrix, i);
-    }
-    consolidate_rooms(space_matrix, min_room_ct, template.bsp_iterations);
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
@@ -210,22 +224,22 @@ static void bsp_iterate(void *_matrix, int itr) {
     // sweep whole map but only increment matching values
     int new_id;
     int end_id;
-    if (itr == 0){
+    if (itr == 0) {
         new_id = 1;
         end_id = 2;
-    }else{
+    } else {
         new_id = itr * itr;
         end_id = ((itr + 1) * (itr + 1));
     }
-    for (int room_id = 0; new_id < end_id; room_id++, new_id++){
+    for (int room_id = 0; new_id < end_id; room_id++, new_id++) {
         partition_space(_matrix, room_id, new_id);
     }
 }
 
 static void partition_space(void *_matrix, int room_id, int new_id) {
-    //define extent of room defined by given id
+    // define extent of room defined by given id
     int *cur = _matrix;
-    int (*matrix)[COLUMNS] = _matrix;
+    int(*matrix)[COLUMNS] = _matrix;
     int tl = -1;
     int br;
     int min_row;
@@ -233,87 +247,76 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
     int max_row;
     int max_col;
     int room_area;
-    //define top left on first note of id, define bottom right on last
-    for (size_t i = 0; i < REGION_AREA; i++, cur++){
-        if(tl == -1){
-            if(*cur == room_id){
+    // define top left on first note of id, define bottom right on last
+    for (size_t i = 0; i < REGION_AREA; i++, cur++) {
+        if (tl == -1) {
+            if (*cur == room_id) {
                 tl = i;
             }
-        }else{
-            if(*cur == room_id){
+        } else {
+            if (*cur == room_id) {
                 br = i;
             }
         }
     }
-    //convert abs coordinate to row/col
+    // convert abs coordinate to row/col
     min_col = tl % COLUMNS;
     max_col = br % COLUMNS;
-    min_row = (int) tl / COLUMNS;
-    max_row = (int) br / COLUMNS;
+    min_row = (int)tl / COLUMNS;
+    max_row = (int)br / COLUMNS;
     room_area = (max_col - min_col + 1) * (max_row - min_row + 1);
 
-    //now split the room
+    // now split the room
     bool split_rows = (rand() > rand());
+    //avoid division by 0 or splitting thin rooms
+    if(max_row == min_row || max_col == min_col){
+        return;
+    }
     int split_point;
-    if (split_rows){
+    int row = min_row;
+    int col = min_col;
+    if (split_rows) {
         split_point = (rand() / (RAND_MAX / (max_row - min_row))) + min_row;
-        for (int i = 0, row = min_row, col = min_col; i < room_area; i++){
-            if(row > split_point){
+        for (int i = 0; i < room_area; i++) {
+            if (row > split_point) {
                 matrix[row][col] = new_id;
             }
-            if(col == max_col){
+            if (col == max_col) {
                 row++;
                 col = min_col;
-            }else{
+            } else {
                 col++;
             }
         }
-    }else{
+    } else {
         split_point = (rand() / (RAND_MAX / (max_col - min_col))) + min_col;
-        for (int i = 0, row = min_row, col = min_col; i < room_area; i++){
-            if(col > split_point){
+        for (int i = 0; i < room_area; i++) {
+            if (col > split_point) {
                 matrix[row][col] = new_id;
             }
-            if(col == max_col){
+            if (col == max_col) {
                 row++;
                 col = min_col;
-            }else{
+            } else {
                 col++;
             }
         }
     }
 }
 
-//takes a matrix where the rooms have been partitioned, iterates through room combinations until one is found that meets
-//criteria of min rooms w min size
-void consolidate_rooms(void *_matrix, int min_room_ct, int room_id_max){
-    Vector room_ids = new_vector(sizeof(int));
-    int potential_region[ROWS][COLUMNS];
+// consolidates rooms in provided matrix and returns count of rooms in result
+int consolidate_rooms(void *_matrix, int room_id_max) {
     int *cur = _matrix;
     int itr_count = 0;
-
-    for (size_t i = 0; i < REGION_AREA; i++){
-        if (!vec_contains(&found_ids, cur)){
-            vec_push_back(&found_ids, cur, 1);
-        }
-        cur++;
+    Vector rooms_found = new_vector(sizeof(int));
+    for (size_t i = 0; i < room_id_max; i++) {
+        Vector adj_rooms = id_adj_rooms(_matrix, i);
+        // append adj rooms to current room_id, ignoring rooms found already
+        combine_adj_rooms(_matrix, i, &adj_rooms, &rooms_found);
+        if (room_sz(_matrix, i) > MIN_ROOM_SZ) vec_push_back(&rooms_found, &i, 1);
+        free_vec(&adj_rooms);
     }
-
-    while(itr_count < MAX_ITERATIONS && possible_regions.size < min_room_ct){
-        for (size_t i = 0; i < found_ids.size; i++){
-            int room_id = VEC_GET(found_ids, int, i);
-            Vector adj_rooms = id_adj_rooms(_matrix, room_id);
-            //append adj rooms to current room_id, ignorning rooms found already
-            combine_adj_rooms(_matrix, room_id, &adj_rooms, &rooms_found);
-            if (room_sz(_matrix, room_id) > )
-            free_vec(&adj_rooms);
-        }
-
-        itr_count++;
-        if(itr_count < MAX_ITERATIONS) return 
-    }
-
-    free_vec(&found_ids);
+    free_vec(&rooms_found);
 }
 
 Vector id_adj_rooms(void *_matrix, int room_id) {
@@ -323,9 +326,9 @@ Vector id_adj_rooms(void *_matrix, int room_id) {
     int adj_value;
     Position cur_pos;
 
-    //find all neighbors
-    for (size_t i = 0; i < REGION_AREA; i++){
-        if (*cur == room_id){
+    // find all neighbors
+    for (size_t i = 0; i < REGION_AREA; i++) {
+        if (*cur == room_id) {
             cur_pos = index_to_pos(i, NULL);
             adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_N)));
             if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
@@ -341,10 +344,18 @@ Vector id_adj_rooms(void *_matrix, int room_id) {
     return ret_vec;
 }
 
+int room_sz(void *_matrix, int room_id) {
+    int sz = 0;
+    for (size_t i = 0; i < REGION_AREA; i++) {
+        if (((int *)_matrix)[i] == room_id) sz++;
+    }
+    return sz;
+}
+
 void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found) {
     int *cur = _matrix;
-    for (size_t i = 0; i < REGION_AREA; i++){
-        if ( vec_contains(adj_rooms, *cur) && !vec_contains(rooms_found, *cur)){
+    for (size_t i = 0; i < REGION_AREA; i++) {
+        if (vec_contains(adj_rooms, cur) && !vec_contains(rooms_found, cur)) {
             *cur = room_id;
         }
         cur++;
