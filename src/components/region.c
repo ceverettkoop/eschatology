@@ -209,13 +209,11 @@ void gen_rooms(Region *p, RegionTemplate template) {
         }
         // attempt to consolidate rooms and mark success or not
         success = (min_room_ct < consolidate_rooms(space_matrix, template.bsp_iterations));
-        if (success) printf("SUCCESS:\n");
-        for (size_t i = 0; i < REGION_AREA; i++) {
-            printf("%d", space_matrix[i]);
-            if (!(i % COLUMNS)) printf("\n");
-        }
         // take what we can get
-        if (consolidations > MAX_CONSOLIDATIONS) success = true;
+        if (consolidations > MAX_CONSOLIDATIONS){
+            fprintf(stderr, "Warning: room generation failed within max allowable iterations, using result\n");
+            success = true;
+        } 
     }
 }
 
