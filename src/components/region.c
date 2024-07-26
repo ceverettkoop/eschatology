@@ -13,8 +13,9 @@
 #include "sprite.h"
 #include "tile.h"
 
-#define MAX_CONSOLIDATIONS 1000
+#define MAX_CONSOLIDATIONS 200
 #define MIN_ROOM_SZ 10
+#define BACKGROUND_FLAG 0
 
 static Region *init_region(EntityID id, GameState *gs, RegionTemplate template);
 static void create_tiles(Region *p, GameState *gs, Sprite background);
@@ -23,13 +24,17 @@ static void gen_straight_tile_line(
 static void generate_boundaries(Region *p, GameState *gs);
 static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count,
     Sprite sprite, Tile tile, GameState *gs);
-static void gen_rooms(Region *p, RegionTemplate template);
+static int *gen_rooms(Region *p, RegionTemplate template);
+static void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
 static int consolidate_rooms(void *_matrix, int room_id_max);
 static Vector id_adj_rooms(void *_matrix, int room_id);
 static void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found);
 static int room_sz(void *_matrix, int room_id);
+static void add_background(int room_ct, void *_matrix);
+static Vector tiles_bordering_room(int room, int *matrix);
+static bool value_is_adj_to_pos(int value, int pos_index, int *matrix);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
@@ -37,6 +42,7 @@ FREE_COMPONENT_FUNC(Region);
 // region not handled as an entity per se
 static Region *init_region(EntityID id, GameState *gs, RegionTemplate template) {
     Region *region_ptr = sc_map_get_64v(&gs->Region_map, id);
+    int *room_matrix;
     if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
 
     region_ptr->gs = gs;
@@ -51,7 +57,11 @@ static Region *init_region(EntityID id, GameState *gs, RegionTemplate template) 
 
     // region creation = creation of tile entities with position component that points to this region
     create_tiles(region_ptr, gs, template.default_background);
-    gen_rooms(region_ptr, template);
+    
+    room_matrix = gen_rooms(region_ptr, template);
+    assign_tiles(region_ptr, room_matrix, template);
+    free(room_matrix); 
+
     generate_boundaries(region_ptr, gs);  // includes exits
     return region_ptr;
 }
@@ -189,14 +199,16 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
     }
 }
 
-void gen_rooms(Region *p, RegionTemplate template) {
+int *gen_rooms(Region *p, RegionTemplate template) {
     const int min_room_ct = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) +
                             template.room_ct_range[R_MIN];
     bool success = false;
     // generate dummy grid to seperate into regions and init to 0
     int *space_matrix = calloc(REGION_AREA, sizeof(int));
+    check_malloc(space_matrix);
     int *cur = space_matrix;
     int consolidations = 0;
+    int room_ct;
 
     while (!success) {
         // clear matrix
@@ -208,15 +220,30 @@ void gen_rooms(Region *p, RegionTemplate template) {
             bsp_iterate(space_matrix, i);
         }
         // attempt to consolidate rooms and mark success or not
-        success = (min_room_ct < consolidate_rooms(space_matrix, template.bsp_iterations));
+        room_ct = consolidate_rooms(space_matrix, template.bsp_iterations);
+        success = (min_room_ct <= room_ct);
+        consolidations++;
         // take what we can get
         if (consolidations > MAX_CONSOLIDATIONS){
             fprintf(stderr, "Warning: room generation failed within max allowable iterations, using result\n");
             success = true;
         } 
     }
+    //designate one room as background and place hallways between others
+    add_background(room_ct, space_matrix);
+    return space_matrix;
+}
 
-    //TODO translate matrix into sprite definitions in region
+void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template) {
+    for (size_t i = 0; i < REGION_AREA; i++){
+        //background
+        if(room_matrix[i] == BACKGROUND_FLAG){
+            EntityID id = ((EntityID*)(region_ptr->tile_ids))[i];
+            Sprite *sprite = sc_map_get_64v(&(region_ptr->gs->Sprite_map), id);
+            *sprite = SPRITE_GRASS;
+        }
+    }
+    
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
@@ -308,6 +335,7 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
 int consolidate_rooms(void *_matrix, int room_id_max) {
     int *cur = _matrix;
     int itr_count = 0;
+    int found;
     Vector rooms_found = new_vector(sizeof(int));
     for (size_t i = 0; i < room_id_max; i++) {
         Vector adj_rooms = id_adj_rooms(_matrix, i);
@@ -316,7 +344,9 @@ int consolidate_rooms(void *_matrix, int room_id_max) {
         if (room_sz(_matrix, i) > MIN_ROOM_SZ) vec_push_back(&rooms_found, &i, 1);
         free_vec(&adj_rooms);
     }
+    found = rooms_found.size;
     free_vec(&rooms_found);
+    return found;
 }
 
 Vector id_adj_rooms(void *_matrix, int room_id) {
@@ -350,6 +380,55 @@ int room_sz(void *_matrix, int room_id) {
         if (((int *)_matrix)[i] == room_id) sz++;
     }
     return sz;
+}
+
+bool value_is_adj_to_pos(int value, int pos_index, int *matrix){
+    Position pos = index_to_pos(pos_index, NULL);
+    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_N)))){
+        return true;
+    }
+    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_W)))){
+        return true;
+    }
+    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_E)))){
+        return true;
+    }
+    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_S)))){
+        return true;
+    }
+    return false;
+}
+
+//
+Vector tiles_bordering_room(int room, int *matrix){
+    Vector ret = new_vector(sizeof(int));
+    for (size_t i = 0; i < REGION_AREA; i++){
+        if(matrix[i] != room){
+            if(value_is_adj_to_pos(matrix[i], i, matrix)){
+                vec_push_back(&ret, &i, 1);
+            }
+        }
+    }
+    return ret;
+}
+
+void add_background(int room_ct, void *_matrix) {
+    int *matrix = _matrix;
+    int background_value = rand() / (RAND_MAX / room_ct);
+    for (size_t i = 0; i < REGION_AREA; i++){
+        if (matrix[i] == background_value) matrix[i] = BACKGROUND_FLAG;
+    }
+    //assign background to border tiles
+    for (size_t i = 0; i < room_ct; i++){
+        if(matrix[i] == background_value) continue;
+        Vector border_tiles = tiles_bordering_room(i, matrix);
+        int *border_values_found =  border_tiles.data;
+        for (size_t j = 0; j < border_tiles.size; j++){
+            int tile_pos = border_values_found[i];
+            matrix[tile_pos] = background_value;
+        }
+        free_vec(&border_tiles);
+    }
 }
 
 void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found) {

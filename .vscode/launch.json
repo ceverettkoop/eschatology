@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "(lldb) ARM Launch",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/eschatology",
@@ -14,7 +14,8 @@
             "cwd": "${workspaceFolder}/bin",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "lldb",
+            "targetArchitecture": "arm64"
         },
         {
             "name": "(gdb) Launch",
