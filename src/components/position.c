@@ -143,14 +143,14 @@ bool pos_is_valid(Position pos) {
 
 int pos_to_index(Position pos) {
     if (!pos_is_valid(pos)) return -1;
-    return pos.column * pos.row;
+    return pos.column + (pos.row * COLUMNS);
 }
 
 Position index_to_pos(int index, struct Region_tag* region) {
     Position ret_val;
     ret_val.region_ptr = region;
-    ret_val.column = index % COLUMNS;
-    ret_val.row = (int) index / COLUMNS;
+    ret_val.row = index % COLUMNS;
+    ret_val.column = (int) index / COLUMNS;
     return ret_val;
 }
 

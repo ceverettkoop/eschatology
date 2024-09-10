@@ -422,9 +422,8 @@ void add_background(int room_ct, void *_matrix) {
     for (size_t i = 0; i < room_ct; i++){
         if(matrix[i] == background_value) continue;
         Vector border_tiles = tiles_bordering_room(i, matrix);
-        int *border_values_found =  border_tiles.data;
         for (size_t j = 0; j < border_tiles.size; j++){
-            int tile_pos = border_values_found[i];
+            int tile_pos = VEC_GET(border_tiles, int, j);
             matrix[tile_pos] = background_value;
         }
         free_vec(&border_tiles);
