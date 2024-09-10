@@ -45,7 +45,7 @@ void vec_push_back(Vector* ptr, void* element, size_t n) {
         check_malloc(ptr->data);
     }
     offset = (ptr->size - n) * ptr->element_size;
-    memcpy(ptr->data + offset, element, n);
+    memcpy(ptr->data + offset, element, n * ptr->element_size);
 }
 
 void vec_clear(Vector* ptr) {

@@ -45,5 +45,6 @@ Position calc_destination(Position origin, Direction dir);
 bool pos_is_valid(Position pos);
 int pos_to_index(Position pos);
 Position index_to_pos(int index, struct Region_tag *region);
+bool cmp_pos(Position* a, Position* b);
 
 #endif /* POSITION_H */

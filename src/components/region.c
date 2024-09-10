@@ -105,7 +105,7 @@ void generate_neighbors(EntityID id, GameState *gs, RegionTemplate template) {
     }
 }
 
-// creates tiles and sets them to defauly background
+// creates tiles and sets them to defaulg background
 static void create_tiles(Region *p, GameState *gs, Sprite background) {
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLUMNS; col++) {
@@ -206,7 +206,6 @@ int *gen_rooms(Region *p, RegionTemplate template) {
     // generate dummy grid to seperate into regions and init to 0
     int *space_matrix = calloc(REGION_AREA, sizeof(int));
     check_malloc(space_matrix);
-    int *cur = space_matrix;
     int consolidations = 0;
     int room_ct;
 
@@ -240,10 +239,13 @@ void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template)
         if(room_matrix[i] == BACKGROUND_FLAG){
             EntityID id = ((EntityID*)(region_ptr->tile_ids))[i];
             Sprite *sprite = sc_map_get_64v(&(region_ptr->gs->Sprite_map), id);
-            *sprite = SPRITE_GRASS;
-        }
+            *sprite = template.default_background;
+        }else{ //testing rooms
+            EntityID id = ((EntityID*)(region_ptr->tile_ids))[i];
+            Sprite *sprite = sc_map_get_64v(&(region_ptr->gs->Sprite_map), id);
+            *sprite = template.room_floor;    
+        }    
     }
-    
 }
 
 static void bsp_iterate(void *_matrix, int itr) {
@@ -384,17 +386,13 @@ int room_sz(void *_matrix, int room_id) {
 
 bool value_is_adj_to_pos(int value, int pos_index, int *matrix){
     Position pos = index_to_pos(pos_index, NULL);
-    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_N)))){
-        return true;
-    }
-    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_W)))){
-        return true;
-    }
-    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_E)))){
-        return true;
-    }
-    if (value == *(matrix + pos_to_index(calc_destination(pos, DIR_S)))){
-        return true;
+    Position other;
+    //loop through 4 cardinal directions
+    for (size_t i = 0; i < 4; i++){
+        other = calc_destination(pos, i);
+        if(!cmp_pos(&pos, &other)){
+            if(value == *(matrix + pos_to_index(other))) return true;
+        }
     }
     return false;
 }
@@ -414,11 +412,12 @@ Vector tiles_bordering_room(int room, int *matrix){
 
 void add_background(int room_ct, void *_matrix) {
     int *matrix = _matrix;
+    //one room randomly determined to be filled w passable background
     int background_value = rand() / (RAND_MAX / room_ct);
     for (size_t i = 0; i < REGION_AREA; i++){
         if (matrix[i] == background_value) matrix[i] = BACKGROUND_FLAG;
     }
-    //assign background to border tiles
+    //assign background to tiles around each room
     for (size_t i = 0; i < room_ct; i++){
         if(matrix[i] == background_value) continue;
         Vector border_tiles = tiles_bordering_room(i, matrix);

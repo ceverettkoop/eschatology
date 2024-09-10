@@ -6,7 +6,6 @@
 #include "region.h"
 #include "tile.h"
 
-static bool cmp_pos(Position* a, Position* b);
 static Direction is_border(Position pos);
 static void change_region(Direction dir, Position* pos);
 static void change_position(Position *pos, Position dest);
@@ -149,8 +148,8 @@ int pos_to_index(Position pos) {
 Position index_to_pos(int index, struct Region_tag* region) {
     Position ret_val;
     ret_val.region_ptr = region;
-    ret_val.row = index % COLUMNS;
-    ret_val.column = (int) index / COLUMNS;
+    ret_val.column = (index + COLUMNS) % COLUMNS;
+    ret_val.row = (int) (index / COLUMNS);
     return ret_val;
 }
 
