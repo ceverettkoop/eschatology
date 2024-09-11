@@ -63,6 +63,9 @@ static Region *init_region(EntityID id, GameState *gs, RegionTemplate template) 
     free(room_matrix);
 
     generate_boundaries(region_ptr, gs);  // includes exits
+
+    //initial update of sprites
+    update_all_sprites(region_ptr);
     return region_ptr;
 }
 
@@ -102,6 +105,24 @@ void generate_neighbors(EntityID id, GameState *gs, RegionTemplate template) {
         new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->east);
         if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->west = id;
+    }
+}
+
+void update_sprites(Vector positions) {
+    for (size_t i = 0; i < positions.size; i++){
+        Position pos = VEC_GET(positions, Position, i);
+        SpriteID id = determine_sprite(pos, pos.region_ptr->gs);
+        SpriteID *id_ptr = (SpriteID*)pos.region_ptr->displayed_sprite + (i * sizeof(SpriteID));
+        *id_ptr = id;
+    }
+}
+
+void update_all_sprites(Region *reg_ptr) {
+    for (size_t i = 0; i < REGION_AREA; i++){
+        Position pos = VEC_GET(positions, Position, i);
+        SpriteID id = determine_sprite(pos, reg_ptr->gs);
+        SpriteID *id_ptr = (SpriteID*)reg_ptr->displayed_sprite + (i * sizeof(SpriteID));
+        *id_ptr = id;
     }
 }
 

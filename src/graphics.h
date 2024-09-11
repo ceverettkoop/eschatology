@@ -9,5 +9,6 @@
 
 void init_graphics();
 void draw_frame(GameState *gs, Position player_loc);
+void queue_sprite_update(Position pos);
 
 #endif /* GRAPHICS_H */

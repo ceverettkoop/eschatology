@@ -8,6 +8,7 @@
 #include "gamestate.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "vector.h"
 
 #define MAX_PATH_LEN 1024
 #define MAX_FILENAME_LEN 64
@@ -28,6 +29,8 @@ static void draw_inset_map(GameState *gs, Position loc);
 static void load_small_sprite_texture(SpriteID id);
 static void load_large_sprite_texture(SpriteID id);
 
+static Vector sprite_update_queue;
+
 void init_graphics() {
     for (SpriteID i = 0; i < SPRITES_IMPLEMENTED; i++) {
         load_small_sprite_texture(i);
@@ -35,6 +38,7 @@ void init_graphics() {
     for (SpriteID i = 0; i < SPRITES_IMPLEMENTED; i++) {
         load_large_sprite_texture(i);
     }
+    sprite_update_queue = new_vector(sizeof(Position));
 };
 
 //updates must occur prior, this is just drawing what is loaded into the region
@@ -56,6 +60,8 @@ void draw_frame(GameState *gs, Position player_loc) {
     // cleanup
     UnloadRenderTexture(render_texture);
 }
+
+void queue_sprite_update(Position pos) {}
 
 static void draw_region_map(GameState *gs) {
     Region *reg_ptr = gs->cur_region_ptr;
@@ -106,4 +112,8 @@ static void load_large_sprite_texture(SpriteID id) {
     large_sprite_pngs[id] = LoadImage(path);
     large_sprites[id] = LoadTextureFromImage(large_sprite_pngs[id]);
     UnloadImage(large_sprite_pngs[id]);
+}
+
+void queue_sprite_update(Position pos){
+    vec_push_back(&sprite_update_queue, &pos, 1);
 }

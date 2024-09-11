@@ -29,6 +29,7 @@ FREE_COMPONENT_DECL(Region);
 Region *generate_region(GameState *gs, EntityID *_id, RegionTemplate template);
 //TODO free regions I guess although they just get freed at program exit
 void generate_neighbors(EntityID id, GameState *gs, RegionTemplate template);
-void update_region(Region *region_ptr, UserInput input);
+void update_sprites(Vector positions);
+void update_all_sprites(Region* reg_ptr);
 
 #endif /* REGION_H */
