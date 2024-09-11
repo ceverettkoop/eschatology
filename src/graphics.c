@@ -37,6 +37,7 @@ void init_graphics() {
     }
 };
 
+//updates must occur prior, this is just drawing what is loaded into the region
 void draw_frame(GameState *gs, Position player_loc) {
     RenderTexture2D render_texture = LoadRenderTexture(SCREEN_WIDTH * SCALE_FACTOR, SCREEN_HEIGHT * SCALE_FACTOR);
     Rectangle source = {0, (float)-SCREEN_HEIGHT, (float)SCREEN_WIDTH, (float)-SCREEN_HEIGHT};
@@ -63,7 +64,8 @@ static void draw_region_map(GameState *gs) {
             Vector2 offset = (Vector2){n * SMALL_SPRITE_WIDTH, i * SMALL_SPRITE_HEIGHT};
             Vector2 origin = Vector2Add(offset, REGION_ORIGIN);
             Position pos = {.row = i, .column = n, .region_ptr = reg_ptr};
-            Texture2D sprite = small_sprites[determine_sprite(pos, gs)];
+            SpriteID id = reg_ptr->displayed_sprite[i][n];
+            Texture2D sprite = small_sprites[id];
             DrawTexture(sprite, (int)origin.x, (int)origin.y, WHITE);
         }
     }
@@ -81,9 +83,10 @@ static void draw_inset_map(GameState *gs, Position loc) {
             Vector2 origin = Vector2Add(screen_offset, INSET_ORIGIN);
             // pos in region iterates like normal from starting point
             Position pos = {.row = i + pos_row_offset, .column = n + pos_column_offset, .region_ptr = reg_ptr};
+            SpriteID id = reg_ptr->displayed_sprite[pos.row][pos.column];
             // out of range positions rendered blank
             Texture2D sprite =
-                pos_is_valid(pos) ? large_sprites[determine_sprite(pos, gs)] : large_sprites[SPRITE_BLANK.id];
+                pos_is_valid(pos) ? large_sprites[id] : large_sprites[SPRITE_BLANK.id];
             DrawTexture(sprite, (int)origin.x, (int)origin.y, WHITE);
         }
     }

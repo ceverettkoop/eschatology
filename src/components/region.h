@@ -21,6 +21,7 @@ struct Region_tag {
     EntityID south;
     EntityID west;
     EntityID tile_ids[ROWS][COLUMNS];
+    SpriteID displayed_sprite[ROWS][COLUMNS];
 };
 
 ADD_COMPONENT_DECL(Region);
