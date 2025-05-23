@@ -1,4 +1,5 @@
 #include "player_action.h"
+#include "error.h"
 
 #include "components/interaction.h"
 #include "components/position.h"
@@ -45,6 +46,8 @@ PlayerAction action_from_interaction(Interaction intr) {
             fatal_err_generic("Unreachable\n");
             break;
     }
+    fatal_err_generic("UNREACHABLE\n");
+    return INTR_FIGHT;
 }
 
 PlayerAction action_from_input(UserInput input) {

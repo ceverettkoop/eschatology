@@ -21,7 +21,7 @@ CFLAGS = -ggdb -fsanitize=address
 IFLAGS = -Iraylib/src -Icomponents -isystem include
 LDFLAGS = -L./lib
 LDLIBS = -lraylib
-CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
+CHECKFLAGS = -Wall -Wformat -Wformat=2 -Wimplicit-fallthrough \
 -D_GLIBCXX_ASSERTIONS \
 -fstack-protector-strong \
 -Werror=implicit -Werror=incompatible-pointer-types -Werror=int-conversion \

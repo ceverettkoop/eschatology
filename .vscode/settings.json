@@ -35,6 +35,7 @@
         "any": "c",
         "complex": "c",
         "*.tcc": "c",
-        "error.h": "c"
+        "error.h": "c",
+        "player_action.h": "c"
     }
 }
