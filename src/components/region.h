@@ -32,5 +32,6 @@ Region *generate_region(GameState *gs, EntityID *_id, RegionTemplate template);
 void generate_neighbors(EntityID id, GameState *gs, RegionTemplate template);
 void update_sprites(Vector positions);
 void update_all_sprites(Region* reg_ptr);
+void debug_print_room_matrix(int *room_matrix);
 
 #endif /* REGION_H */
