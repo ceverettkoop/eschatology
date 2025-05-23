@@ -112,16 +112,16 @@ void update_sprites(Vector positions) {
     for (size_t i = 0; i < positions.size; i++){
         Position pos = VEC_GET(positions, Position, i);
         SpriteID id = determine_sprite(pos, pos.region_ptr->gs);
-        SpriteID *id_ptr = (SpriteID*)pos.region_ptr->displayed_sprite + (i * sizeof(SpriteID));
+        SpriteID *id_ptr = &((SpriteID*)pos.region_ptr->displayed_sprite)[i];
         *id_ptr = id;
     }
 }
 
 void update_all_sprites(Region *reg_ptr) {
     for (size_t i = 0; i < REGION_AREA; i++){
-        Position pos = VEC_GET(positions, Position, i);
+        Position pos = index_to_pos(i, reg_ptr);
         SpriteID id = determine_sprite(pos, reg_ptr->gs);
-        SpriteID *id_ptr = (SpriteID*)reg_ptr->displayed_sprite + (i * sizeof(SpriteID));
+        SpriteID *id_ptr = &((SpriteID*)reg_ptr->displayed_sprite)[i];
         *id_ptr = id;
     }
 }
@@ -261,7 +261,7 @@ void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template)
             EntityID id = ((EntityID *)(region_ptr->tile_ids))[i];
             Sprite *sprite = sc_map_get_64v(&(region_ptr->gs->Sprite_map), id);
             *sprite = template.default_background;
-        } else {  // testing rooms
+        } else {  // room tiles  
             EntityID id = ((EntityID *)(region_ptr->tile_ids))[i];
             Sprite *sprite = sc_map_get_64v(&(region_ptr->gs->Sprite_map), id);
             *sprite = template.room_floor;

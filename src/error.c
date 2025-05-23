@@ -47,3 +47,8 @@ void err_too_many_components() {
     fprintf(stderr, "Error: too many component types to create entity\n");
     exit(1);
 }
+
+void err_vector_index_out_of_bounds(size_t index, size_t size) {
+    fprintf(stderr, "Error: Vector index %zu out of bounds (size: %zu)\n", index, size);
+    exit(1);
+}

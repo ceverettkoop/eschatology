@@ -5,6 +5,7 @@
 #include "../gamestate.h"
 #include "../user_input.h"
 #include "../regiontemplate.h"
+#include "../vector.h"
 
 #define REGION_WIDTH 105
 #define REGION_HEIGHT 20

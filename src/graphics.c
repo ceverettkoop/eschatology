@@ -61,8 +61,6 @@ void draw_frame(GameState *gs, Position player_loc) {
     UnloadRenderTexture(render_texture);
 }
 
-void queue_sprite_update(Position pos) {}
-
 static void draw_region_map(GameState *gs) {
     Region *reg_ptr = gs->cur_region_ptr;
     for (int i = 0; i < ROWS; i++) {

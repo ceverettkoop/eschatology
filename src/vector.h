@@ -2,10 +2,15 @@
 #define VECTOR_H
 
 #include <stddef.h>
+#include "error.h"
 
 #define PAGE_SIZE 4096
 
-#define VEC_GET(vector, type, index) ((type*)vector.data)[index]
+#define VEC_GET(vector, type, index) \
+    (((size_t)(index) >= (vector).size) ? \
+        (err_vector_index_out_of_bounds((size_t)(index), (vector).size), \
+         *((type*)NULL)) : \
+        ((type*)(vector).data)[index])
 
 typedef struct vector_tag Vector;
 
