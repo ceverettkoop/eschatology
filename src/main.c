@@ -27,6 +27,8 @@ int main(int argc, char const *argv[]) {
         // determine if input is an action or UI related
         if (is_player_action(input)) {
             handle_move_or_action(player_id, input, gs);
+            //if above changed region, it did so to gs
+            update_all_sprites(gs->cur_region_ptr);
         } else if (is_ui_action(input)) {
             // update_ui, make ui.h
         }
