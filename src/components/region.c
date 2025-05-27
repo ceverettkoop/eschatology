@@ -21,20 +21,15 @@ static Region *init_region(EntityID id, GameState *gs, RegionTemplate template, 
 static void create_tiles(Region *p, GameState *gs, Sprite background);
 static void gen_straight_tile_line(
     Position origin, bool is_x_axis, int line_len, Sprite sprite, Tile tile, GameState *gs);
-static void generate_boundaries(Region *p, GameState *gs);
 static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int min_entity_count, int max_entity_count,
     Sprite sprite, Tile tile, GameState *gs);
 static int *gen_rooms(Region *p, RegionTemplate template);
 static void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template);
 static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
-static int consolidate_rooms(void *_matrix, int room_id_max);
-static Vector id_adj_rooms(void *_matrix, int room_id);
-static void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found);
 static int room_sz(void *_matrix, int room_id);
 static void add_background(int room_ct, void *_matrix);
-static Vector tiles_bordering_room(int room, int *matrix);
-static bool value_is_adj_to_pos(int value, int pos_index, int *matrix);
+static void add_corridors_to_full_height_rooms(void *_matrix);
 static int count_distinct_rooms(int *matrix);
 static bool* extract_border_passable_tiles(Region *region, Direction border);
 static void generate_boundaries_with_alignment(Region *p, GameState *gs, bool *north_align, bool *south_align, bool *west_align, bool *east_align);
@@ -168,28 +163,6 @@ static void create_tiles(Region *p, GameState *gs, Sprite background) {
     }
 }
 
-static void generate_boundaries(Region *p, GameState *gs) {
-    // north
-    gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, SPRITE_MOUNTAIN,
-        (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 0, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6, SPRITE_GRASS,
-        (Tile){.passable = true}, gs);
-    // west
-    gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_WIDTH, SPRITE_MOUNTAIN,
-        (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 1, .column = 0, .region_ptr = p}, false, REGION_HEIGHT - 2, 1, 6, SPRITE_GRASS,
-        (Tile){.passable = true}, gs);
-    // south
-    gen_straight_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH,
-        SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = ROWS - 1, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6,
-        SPRITE_GRASS, (Tile){.passable = true}, gs);
-    // east
-    gen_straight_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_WIDTH,
-        SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 1, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT - 2, 1, 6,
-        SPRITE_GRASS, (Tile){.passable = true}, gs);
-}
 
 static void gen_straight_tile_line(
     Position origin, bool is_x_axis, int line_len, Sprite sprite, Tile tile, GameState *gs) {
@@ -277,6 +250,8 @@ int *gen_rooms(Region *p, RegionTemplate template) {
             success = true;
         }
     }
+    // add corridors through full-height rooms before adding background
+    add_corridors_to_full_height_rooms(space_matrix);
     // designate one room as background and place hallways between others
     add_background(room_ct, space_matrix);
     return space_matrix;
@@ -363,48 +338,7 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
     }
 }
 
-// consolidates rooms in provided matrix and returns count of rooms in result
-int consolidate_rooms(void *_matrix, int room_id_max) {
-    int *cur = _matrix;
-    int itr_count = 0;
-    int found;
-    Vector rooms_found = new_vector(sizeof(int));
-    for (size_t i = 0; i < room_id_max; i++) {
-        Vector adj_rooms = id_adj_rooms(_matrix, i);
-        // append adj rooms to current room_id, ignoring rooms found already
-        combine_adj_rooms(_matrix, i, &adj_rooms, &rooms_found);
-        if (room_sz(_matrix, i) > MIN_ROOM_SZ) vec_push_back(&rooms_found, &i, 1);
-        free_vec(&adj_rooms);
-    }
-    found = rooms_found.size;
-    free_vec(&rooms_found);
-    return found;
-}
 
-Vector id_adj_rooms(void *_matrix, int room_id) {
-    Vector ret_vec = new_vector(sizeof(int));
-    int *matrix = _matrix;
-    int *cur = _matrix;
-    int adj_value;
-    Position cur_pos;
-
-    // find all neighbors
-    for (size_t i = 0; i < REGION_AREA; i++) {
-        if (*cur == room_id) {
-            cur_pos = index_to_pos(i, NULL);
-            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_N)));
-            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
-            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_W)));
-            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
-            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_S)));
-            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
-            adj_value = *(matrix + pos_to_index(calc_destination(cur_pos, DIR_E)));
-            if (adj_value == room_id) vec_push_back(&ret_vec, &adj_value, 1);
-        }
-    }
-
-    return ret_vec;
-}
 
 int room_sz(void *_matrix, int room_id) {
     int sz = 0;
@@ -414,31 +348,7 @@ int room_sz(void *_matrix, int room_id) {
     return sz;
 }
 
-bool value_is_adj_to_pos(int value, int pos_index, int *matrix) {
-    Position pos = index_to_pos(pos_index, NULL);
-    Position other;
-    // loop through 4 cardinal directions
-    for (size_t i = 0; i < 4; i++) {
-        other = calc_destination(pos, i);
-        if (!cmp_pos(&pos, &other)) {
-            if (value == *(matrix + pos_to_index(other))) return true;
-        }
-    }
-    return false;
-}
 
-//
-Vector tiles_bordering_room(int room, int *matrix) {
-    Vector ret = new_vector(sizeof(int));
-    for (size_t i = 0; i < REGION_AREA; i++) {
-        if (matrix[i] != room) {
-            if (value_is_adj_to_pos(matrix[i], i, matrix)) {
-                vec_push_back(&ret, &i, 1);
-            }
-        }
-    }
-    return ret;
-}
 
 void add_background(int room_ct, void *_matrix) {
     int *matrix = _matrix;
@@ -490,15 +400,6 @@ void add_background(int room_ct, void *_matrix) {
     }
 }
 
-void combine_adj_rooms(void *_matrix, int room_id, Vector *adj_rooms, Vector *rooms_found) {
-    int *cur = _matrix;
-    for (size_t i = 0; i < REGION_AREA; i++) {
-        if (vec_contains(adj_rooms, cur) && !vec_contains(rooms_found, cur)) {
-            *cur = room_id;
-        }
-        cur++;
-    }
-}
 
 void debug_print_room_matrix(int *room_matrix) {
     printf("\n=== Room Matrix Debug ===\n");
@@ -523,6 +424,62 @@ static int count_distinct_rooms(int *matrix) {
         }
     }
     return max_room_id;
+}
+
+static void add_corridors_to_full_height_rooms(void *_matrix) {
+    int(*matrix)[COLUMNS] = _matrix;
+    
+    // Check each room to see if it's full height
+    int max_room_id = count_distinct_rooms(_matrix);
+    for (int room_id = 1; room_id <= max_room_id; room_id++) {
+        int min_col = COLUMNS, max_col = -1;
+        
+        // Check if this room spans from top boundary (row 1) to bottom boundary (row ROWS-2)
+        bool has_top_row = false, has_bottom_row = false;
+        
+        for (int col = 1; col < COLUMNS - 1; col++) {
+            if (matrix[1][col] == room_id) {
+                has_top_row = true;
+                if (col < min_col) min_col = col;
+                if (col > max_col) max_col = col;
+            }
+            if (matrix[ROWS - 2][col] == room_id) {
+                has_bottom_row = true;
+                if (col < min_col) min_col = col;
+                if (col > max_col) max_col = col;
+            }
+        }
+        
+        // Check if room spans the full height
+        if (has_top_row && has_bottom_row) {
+            bool spans_full_height = true;
+            for (int row = 1; row < ROWS - 1; row++) {
+                bool has_room_in_row = false;
+                for (int col = min_col; col <= max_col; col++) {
+                    if (matrix[row][col] == room_id) {
+                        has_room_in_row = true;
+                        break;
+                    }
+                }
+                if (!has_room_in_row) {
+                    spans_full_height = false;
+                    break;
+                }
+            }
+            
+            if (spans_full_height && (max_col - min_col + 1) >= 4) {
+                // Create horizontal corridor at random height
+                int corridor_row = 2 + (rand() % (ROWS - 5)); // between rows 2 and ROWS-3
+                
+                // Convert corridor tiles to background (passable)
+                for (int col = min_col; col <= max_col; col++) {
+                    if (matrix[corridor_row][col] == room_id) {
+                        matrix[corridor_row][col] = BACKGROUND_FLAG;
+                    }
+                }
+            }
+        }
+    }
 }
 
 static bool* extract_border_passable_tiles(Region *region, Direction border) {

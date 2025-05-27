@@ -9,7 +9,7 @@
 #define VEC_GET(vector, type, index) \
     (((size_t)(index) >= (vector).size) ? \
         (err_vector_index_out_of_bounds((size_t)(index), (vector).size), \
-         *((type*)NULL)) : \
+         *((volatile type*)NULL)) : \
         ((type*)(vector).data)[index])
 
 typedef struct vector_tag Vector;
