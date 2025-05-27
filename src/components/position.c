@@ -7,8 +7,8 @@
 #include "tile.h"
 
 static Direction is_border(Position pos);
-static void change_region(Direction dir, Position* pos);
-static void change_position(Position *pos, Position dest);
+static void change_region(Direction dir, Position* pos, GameState* gs);
+static void change_position(Position* pos, Position dest, GameState* gs);
 
 SpriteID determine_sprite(Position pos, GameState* gs) {
     DrawPriority best = -1;
@@ -46,7 +46,7 @@ MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir, Interacti
 
     sc_map_foreach(&gs->Position_map, key, value) {
         if (cmp_pos(value, &destination)) {
-            vec_push_back(&entities_found, &value, 1);
+            vec_push_back(&entities_found, &key, 1);
         }
     }
 
@@ -69,7 +69,7 @@ MoveResult attempt_move(GameState* gs, EntityID entity, Direction dir, Interacti
     }
     // default case is we moved, move now
     free_vec(&entities_found);
-    change_position(origin_ptr, destination);
+    change_position(origin_ptr, destination, gs);
     return MOVED;
 }
 
@@ -133,11 +133,11 @@ Position calc_destination(Position origin, Direction dir) {
     return ret_val;
 }
 
-bool pos_is_valid(Position pos) { 
-    if(pos.row < 0 || pos.row >= ROWS || pos.column < 0 || pos.column >= COLUMNS){
+bool pos_is_valid(Position pos) {
+    if (pos.row < 0 || pos.row >= ROWS || pos.column < 0 || pos.column >= COLUMNS) {
         return false;
     }
-    return true; 
+    return true;
 }
 
 int pos_to_index(Position pos) {
@@ -149,15 +149,15 @@ Position index_to_pos(int index, struct Region_tag* region) {
     Position ret_val;
     ret_val.region_ptr = region;
     ret_val.column = (index + COLUMNS) % COLUMNS;
-    ret_val.row = (int) (index / COLUMNS);
+    ret_val.row = (int)(index / COLUMNS);
     return ret_val;
 }
 
-void change_position(Position* pos, Position dest) {
+static void change_position(Position* pos, Position dest, GameState* gs) {
     // if it's a border, change our region
     Direction border_dir = is_border(dest);
     if (border_dir != DIR_NONE) {
-        change_region(border_dir, pos);
+        change_region(border_dir, pos, gs);
         return;  // done
     } else {
         pos->column = dest.column;
@@ -192,4 +192,54 @@ static Direction is_border(Position pos) {
 
 // HAVE TO SHIFT US TO A VALID TILE IN THE NEW SPOT
 // TODO ADJUST REGION GEN TO ALLOW THIS
-static void change_region(Direction dir, Position* pos) {}
+static void change_region(Direction dir, Position* pos, GameState* gs) {
+    Region* current_region = pos->region_ptr;
+    Region* new_region = NULL;
+    EntityID new_region_id = 0;
+
+    // Get the neighboring region based on exit direction
+    switch (dir) {
+        case DIR_N:
+            new_region = sc_map_get_64v(&current_region->gs->Region_map, current_region->north);
+            new_region_id = current_region->north;
+            if (!sc_map_found(&current_region->gs->Region_map)) return;
+            pos->region_ptr = new_region;
+            pos->row = ROWS - 1;  // Enter from south
+            break;
+        case DIR_S:
+            new_region = sc_map_get_64v(&current_region->gs->Region_map, current_region->south);
+            new_region_id = current_region->south;
+            if (!sc_map_found(&current_region->gs->Region_map)) return;
+            pos->region_ptr = new_region;
+            pos->row = 0;  // Enter from north
+            break;
+        case DIR_E:
+            new_region = sc_map_get_64v(&current_region->gs->Region_map, current_region->east);
+            new_region_id = current_region->east;
+            if (!sc_map_found(&current_region->gs->Region_map)) return;
+            pos->region_ptr = new_region;
+            pos->column = 0;  // Enter from west
+            break;
+        case DIR_W:
+            new_region = sc_map_get_64v(&current_region->gs->Region_map, current_region->west);
+            new_region_id = current_region->west;
+            if (!sc_map_found(&current_region->gs->Region_map)) return;
+            pos->region_ptr = new_region;
+            pos->column = COLUMNS - 1;  // Enter from east
+            break;
+        default:
+            return;
+    }
+
+    // err on impassable tile at destination, region gen should not allow this
+    EntityID tile_id = new_region->tile_ids[pos->row][pos->column];
+    Tile* new_tile = sc_map_get_64v(&current_region->gs->Tile_map, tile_id);
+    if (!new_tile->passable) err_placed_on_impassable_tile(pos);
+
+    // all is well, pos is changed, update gamestate
+    gs->cur_region_ptr = new_region;
+
+    // if the new region does not have neighbors, create them now
+    if (new_region->north == NULL || new_region->south == NULL || new_region->west == NULL || new_region->east == NULL)
+        generate_neighbors(new_region_id, gs, DEFAULT_REGION);
+}

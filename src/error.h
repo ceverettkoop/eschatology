@@ -13,5 +13,6 @@ void err_free_missing_component(const char* component_str);
 void err_no_sprite_to_draw(int row, int column);
 void err_too_many_components();
 void err_vector_index_out_of_bounds(size_t index, size_t size);
+void err_placed_on_impassable_tile(void *pos);
 
 #endif /* ERROR_H */

@@ -52,3 +52,9 @@ void err_vector_index_out_of_bounds(size_t index, size_t size) {
     fprintf(stderr, "Error: Vector index %zu out of bounds (size: %zu)\n", index, size);
     exit(1);
 }
+
+void err_placed_on_impassable_tile(void *pos) {
+    fprintf(stderr, "Error: placed on impassable tile\n");
+    //TODO handle this one, call a function to adjust the guy
+    exit(1);
+}

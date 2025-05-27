@@ -17,7 +17,7 @@
 #define MIN_ROOM_SZ 10
 #define BACKGROUND_FLAG 0
 
-static Region *init_region(EntityID id, GameState *gs, RegionTemplate template);
+static Region *init_region(EntityID id, GameState *gs, RegionTemplate template, bool *north_align, bool *south_align, bool *west_align, bool *east_align);
 static void create_tiles(Region *p, GameState *gs, Sprite background);
 static void gen_straight_tile_line(
     Position origin, bool is_x_axis, int line_len, Sprite sprite, Tile tile, GameState *gs);
@@ -36,12 +36,14 @@ static void add_background(int room_ct, void *_matrix);
 static Vector tiles_bordering_room(int room, int *matrix);
 static bool value_is_adj_to_pos(int value, int pos_index, int *matrix);
 static int count_distinct_rooms(int *matrix);
+static bool* extract_border_passable_tiles(Region *region, Direction border);
+static void generate_boundaries_with_alignment(Region *p, GameState *gs, bool *north_align, bool *south_align, bool *west_align, bool *east_align);
 
 ADD_COMPONENT_FUNC(Region);
 FREE_COMPONENT_FUNC(Region);
 
 // region not handled as an entity per se
-static Region *init_region(EntityID id, GameState *gs, RegionTemplate template) {
+static Region *init_region(EntityID id, GameState *gs, RegionTemplate template, bool *north_align, bool *south_align, bool *west_align, bool *east_align) {
     Region *region_ptr = sc_map_get_64v(&gs->Region_map, id);
     int *room_matrix;
     if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
@@ -60,10 +62,10 @@ static Region *init_region(EntityID id, GameState *gs, RegionTemplate template) 
     create_tiles(region_ptr, gs, template.default_background);
 
     room_matrix = gen_rooms(region_ptr, template);
-    debug_print_room_matrix(room_matrix);
+    //debug_print_room_matrix(room_matrix);
     assign_tiles(region_ptr, room_matrix, template);
 
-    generate_boundaries(region_ptr, gs);  // includes exits
+    generate_boundaries_with_alignment(region_ptr, gs, north_align, south_align, west_align, east_align);  // includes exits
     
     free(room_matrix);
 
@@ -78,36 +80,58 @@ Region *generate_region(GameState *gs, EntityID *_id, RegionTemplate template) {
     Region *reg_ptr = malloc(sizeof(Region));
     check_malloc(reg_ptr);
     sc_map_put_64v(&gs->Region_map, id, reg_ptr);
-    return init_region(id, gs, template);
+    return init_region(id, gs, template, NULL, NULL, NULL, NULL);
+}
+
+static Region *generate_region_with_alignment(GameState *gs, EntityID *_id, RegionTemplate template, bool *north_align, bool *south_align, bool *west_align, bool *east_align) {
+    EntityID id = new_entity(gs);
+    *_id = id;
+    Region *reg_ptr = malloc(sizeof(Region));
+    check_malloc(reg_ptr);
+    sc_map_put_64v(&gs->Region_map, id, reg_ptr);
+    return init_region(id, gs, template, north_align, south_align, west_align, east_align);
 }
 
 void generate_neighbors(EntityID id, GameState *gs, RegionTemplate template) {
     Region *region_ptr = sc_map_get_64v(&gs->Region_map, id);
     Region *new_ptr = NULL;
     if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
+    
     if (region_ptr->north == 0) {
-        generate_region(gs, &region_ptr->north, template);
+        // Extract south border passable tiles from current region to align north border of new region
+        bool *south_align = extract_border_passable_tiles(region_ptr, DIR_N);
+        generate_region_with_alignment(gs, &region_ptr->north, template, NULL, south_align, NULL, NULL);
         new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->north);
         if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->south = id;
+        free(south_align);
     }
     if (region_ptr->south == 0) {
-        generate_region(gs, &region_ptr->south, template);
+        // Extract north border passable tiles from current region to align south border of new region
+        bool *north_align = extract_border_passable_tiles(region_ptr, DIR_S);
+        generate_region_with_alignment(gs, &region_ptr->south, template, north_align, NULL, NULL, NULL);
         new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->south);
         if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->north = id;
+        free(north_align);
     }
     if (region_ptr->west == 0) {
-        generate_region(gs, &region_ptr->west, template);
+        // Extract east border passable tiles from current region to align west border of new region
+        bool *east_align = extract_border_passable_tiles(region_ptr, DIR_W);
+        generate_region_with_alignment(gs, &region_ptr->west, template, NULL, NULL, NULL, east_align);
         new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->west);
         if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->east = id;
+        free(east_align);
     }
     if (region_ptr->east == 0) {
-        generate_region(gs, &region_ptr->east, template);
+        // Extract west border passable tiles from current region to align east border of new region
+        bool *west_align = extract_border_passable_tiles(region_ptr, DIR_E);
+        generate_region_with_alignment(gs, &region_ptr->east, template, NULL, NULL, west_align, NULL);
         new_ptr = sc_map_get_64v(&gs->Region_map, region_ptr->east);
         if (!sc_map_found(&gs->Region_map)) err_entity_not_found();
         new_ptr->west = id;
+        free(west_align);
     }
 }
 
@@ -499,4 +523,142 @@ static int count_distinct_rooms(int *matrix) {
         }
     }
     return max_room_id;
+}
+
+static bool* extract_border_passable_tiles(Region *region, Direction border) {
+    bool *passable_tiles = malloc(sizeof(bool) * (REGION_WIDTH - 2));
+    check_malloc(passable_tiles);
+    
+    switch(border) {
+        case DIR_N:
+            // Extract passable tiles from north border (excluding corners)
+            for (int col = 1; col < COLUMNS - 1; col++) {
+                EntityID tile_id = region->tile_ids[0][col];
+                Tile *tile = sc_map_get_64v(&region->gs->Tile_map, tile_id);
+                passable_tiles[col - 1] = sc_map_found(&region->gs->Tile_map) ? tile->passable : false;
+            }
+            break;
+        case DIR_S:
+            // Extract passable tiles from south border (excluding corners)
+            for (int col = 1; col < COLUMNS - 1; col++) {
+                EntityID tile_id = region->tile_ids[ROWS - 1][col];
+                Tile *tile = sc_map_get_64v(&region->gs->Tile_map, tile_id);
+                passable_tiles[col - 1] = sc_map_found(&region->gs->Tile_map) ? tile->passable : false;
+            }
+            break;
+        case DIR_W:
+            // Extract passable tiles from west border (excluding corners)
+            for (int row = 1; row < ROWS - 1; row++) {
+                EntityID tile_id = region->tile_ids[row][0];
+                Tile *tile = sc_map_get_64v(&region->gs->Tile_map, tile_id);
+                passable_tiles[row - 1] = sc_map_found(&region->gs->Tile_map) ? tile->passable : false;
+            }
+            break;
+        case DIR_E:
+            // Extract passable tiles from east border (excluding corners)
+            for (int row = 1; row < ROWS - 1; row++) {
+                EntityID tile_id = region->tile_ids[row][COLUMNS - 1];
+                Tile *tile = sc_map_get_64v(&region->gs->Tile_map, tile_id);
+                passable_tiles[row - 1] = sc_map_found(&region->gs->Tile_map) ? tile->passable : false;
+            }
+            break;
+        default:
+            // Initialize to false for invalid directions
+            for (int i = 0; i < REGION_WIDTH - 2; i++) {
+                passable_tiles[i] = false;
+            }
+            break;
+    }
+    
+    return passable_tiles;
+}
+
+static void generate_boundaries_with_alignment(Region *p, GameState *gs, bool *north_align, bool *south_align, bool *west_align, bool *east_align) {
+    // north
+    gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, SPRITE_MOUNTAIN,
+        (Tile){.passable = false}, gs);
+    if (north_align) {
+        // Use aligned passable tiles
+        for (int col = 1; col < COLUMNS - 1; col++) {
+            if (north_align[col - 1]) {
+                EntityID to_change_id = p->tile_ids[0][col];
+                Sprite *sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
+                Tile *tile_to_change = sc_map_get_64v(&gs->Tile_map, to_change_id);
+                if (sc_map_found(&gs->Sprite_map) && sc_map_found(&gs->Tile_map)) {
+                    *sprite_to_change = SPRITE_GRASS;
+                    *tile_to_change = (Tile){.passable = true};
+                }
+            }
+        }
+    } else {
+        // Generate random passable tiles
+        gen_rand_tile_line((Position){.row = 0, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6, SPRITE_GRASS,
+            (Tile){.passable = true}, gs);
+    }
+    
+    // west
+    gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_HEIGHT, SPRITE_MOUNTAIN,
+        (Tile){.passable = false}, gs);
+    if (west_align) {
+        // Use aligned passable tiles
+        for (int row = 1; row < ROWS - 1; row++) {
+            if (west_align[row - 1]) {
+                EntityID to_change_id = p->tile_ids[row][0];
+                Sprite *sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
+                Tile *tile_to_change = sc_map_get_64v(&gs->Tile_map, to_change_id);
+                if (sc_map_found(&gs->Sprite_map) && sc_map_found(&gs->Tile_map)) {
+                    *sprite_to_change = SPRITE_GRASS;
+                    *tile_to_change = (Tile){.passable = true};
+                }
+            }
+        }
+    } else {
+        // Generate random passable tiles
+        gen_rand_tile_line((Position){.row = 1, .column = 0, .region_ptr = p}, false, REGION_HEIGHT - 2, 1, 6, SPRITE_GRASS,
+            (Tile){.passable = true}, gs);
+    }
+    
+    // south
+    gen_straight_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH,
+        SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
+    if (south_align) {
+        // Use aligned passable tiles
+        for (int col = 1; col < COLUMNS - 1; col++) {
+            if (south_align[col - 1]) {
+                EntityID to_change_id = p->tile_ids[ROWS - 1][col];
+                Sprite *sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
+                Tile *tile_to_change = sc_map_get_64v(&gs->Tile_map, to_change_id);
+                if (sc_map_found(&gs->Sprite_map) && sc_map_found(&gs->Tile_map)) {
+                    *sprite_to_change = SPRITE_GRASS;
+                    *tile_to_change = (Tile){.passable = true};
+                }
+            }
+        }
+    } else {
+        // Generate random passable tiles
+        gen_rand_tile_line((Position){.row = ROWS - 1, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6,
+            SPRITE_GRASS, (Tile){.passable = true}, gs);
+    }
+    
+    // east
+    gen_straight_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT,
+        SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
+    if (east_align) {
+        // Use aligned passable tiles
+        for (int row = 1; row < ROWS - 1; row++) {
+            if (east_align[row - 1]) {
+                EntityID to_change_id = p->tile_ids[row][COLUMNS - 1];
+                Sprite *sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
+                Tile *tile_to_change = sc_map_get_64v(&gs->Tile_map, to_change_id);
+                if (sc_map_found(&gs->Sprite_map) && sc_map_found(&gs->Tile_map)) {
+                    *sprite_to_change = SPRITE_GRASS;
+                    *tile_to_change = (Tile){.passable = true};
+                }
+            }
+        }
+    } else {
+        // Generate random passable tiles
+        gen_rand_tile_line((Position){.row = 1, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT - 2, 1, 6,
+            SPRITE_GRASS, (Tile){.passable = true}, gs);
+    }
 }
