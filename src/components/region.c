@@ -148,22 +148,22 @@ static void generate_boundaries(Region *p, GameState *gs) {
     // north
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6, SPRITE_GRASS,
+    gen_rand_tile_line((Position){.row = 0, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6, SPRITE_GRASS,
         (Tile){.passable = true}, gs);
     // west
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_WIDTH, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_HEIGHT, 1, 6, SPRITE_GRASS,
+    gen_rand_tile_line((Position){.row = 1, .column = 0, .region_ptr = p}, false, REGION_HEIGHT - 2, 1, 6, SPRITE_GRASS,
         (Tile){.passable = true}, gs);
     // south
     gen_straight_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH,
         SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = ROWS - 1, .column = 0, .region_ptr = p}, true, REGION_WIDTH, 1, 6,
+    gen_rand_tile_line((Position){.row = ROWS - 1, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6,
         SPRITE_GRASS, (Tile){.passable = true}, gs);
     // east
     gen_straight_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_WIDTH,
         SPRITE_MOUNTAIN, (Tile){.passable = false}, gs);
-    gen_rand_tile_line((Position){.row = 0, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT, 1, 6,
+    gen_rand_tile_line((Position){.row = 1, .column = COLUMNS - 1, .region_ptr = p}, false, REGION_HEIGHT - 2, 1, 6,
         SPRITE_GRASS, (Tile){.passable = true}, gs);
 }
 
@@ -176,13 +176,6 @@ static void gen_straight_tile_line(
     int row = origin.row;
     int col = origin.column;
     for (int i = 0; i < line_len; i++) {
-        if (is_x_axis) {
-            col++;
-            if (col >= COLUMNS) break;
-        } else {
-            row++;
-            if (row >= ROWS) break;
-        }
         to_change_id = origin.region_ptr->tile_ids[row][col];
         sprite_to_change = sc_map_get_64v(&gs->Sprite_map, to_change_id);
         if (!sc_map_found(&gs->Sprite_map)) err_entity_not_found();
@@ -190,6 +183,14 @@ static void gen_straight_tile_line(
         if (!sc_map_found(&gs->Tile_map)) err_entity_not_found();
         *sprite_to_change = sprite;
         *tile_to_change = tile;
+        
+        if (is_x_axis) {
+            col++;
+            if (col >= COLUMNS) break;
+        } else {
+            row++;
+            if (row >= ROWS) break;
+        }
     }
 }
 
