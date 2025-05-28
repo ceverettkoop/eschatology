@@ -12,6 +12,10 @@ typedef struct RegionTemplate_tag{
     int exit_count_opp[2];
     int exit_count_l[2];
     int exit_count_r[2];
+    int min_room_width;
+    int max_room_width;
+    int min_room_height;
+    int max_room_height;
 
     Sprite default_background;
     Sprite room_floor;

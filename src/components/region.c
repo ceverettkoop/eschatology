@@ -21,6 +21,11 @@ static const int INNER_ROWS = ROWS - 2;
 static const int INNER_COLS = COLUMNS - 2;
 static const int INNER_AREA = (ROWS - 2) * (COLUMNS - 2);
 
+typedef struct {
+    int x, y, width, height;
+    int room_id;
+} RoomRect;
+
 static Region *init_region(EntityID id, GameState *gs, RegionTemplate template, bool *north_align, bool *south_align, bool *west_align, bool *east_align);
 static void create_tiles(Region *p, GameState *gs, Sprite background);
 static void gen_straight_tile_line(
@@ -29,11 +34,6 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
     Sprite sprite, Tile tile, GameState *gs);
 static int *gen_rooms(Region *p, RegionTemplate template);
 static void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template);
-static void bsp_iterate(void *_matrix, int itr);
-static void partition_space(void *_matrix, int room_id, int new_id);
-static int room_sz(void *_matrix, int room_id);
-static void add_background(int room_ct, void *_matrix);
-static int count_distinct_rooms(int *matrix);
 static bool* extract_border_passable_tiles(Region *region, Direction border);
 static void generate_boundaries_with_alignment(Region *p, GameState *gs, bool *north_align, bool *south_align, bool *west_align, bool *east_align);
 
@@ -61,7 +61,6 @@ static Region *init_region(EntityID id, GameState *gs, RegionTemplate template, 
     generate_boundaries_with_alignment(region_ptr, gs, north_align, south_align, west_align, east_align);  // includes exits
 
     room_matrix = gen_rooms(region_ptr, template);
-    //debug_print_room_matrix(room_matrix);
     assign_tiles(region_ptr, room_matrix, template);
     free(room_matrix);
 
@@ -218,126 +217,112 @@ static void gen_rand_tile_line(Position origin, bool is_x_axis, int extent, int 
 }
 
 int *gen_rooms(Region *p, RegionTemplate template) {
-    const int min_room_ct = rand() / (RAND_MAX / (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN])) +
+    const int min_room_ct = rand() % (template.room_ct_range[R_MAX] - template.room_ct_range[R_MIN] + 1) + 
                             template.room_ct_range[R_MIN];
-    bool success = false;
-    // generate matrix for inner region (excluding outermost ring)
+    
+    // Initialize matrix - 0 = background/corridor, positive = room ID
     int *space_matrix = calloc(INNER_AREA, sizeof(int));
     check_malloc(space_matrix);
-    int consolidations = 0;
-    int room_ct;
-
-    while (!success) {
-        // initialize matrix to single room (ID 1)
-        for (size_t i = 0; i < INNER_AREA; i++) {
-            space_matrix[i] = 1;
+    
+    // Try to place rectangular rooms
+    RoomRect *rooms = malloc(min_room_ct * sizeof(RoomRect));
+    check_malloc(rooms);
+    int placed_rooms = 0;
+    
+    // Place rooms with overlap checking
+    for (int attempts = 0; attempts < min_room_ct * 10 && placed_rooms < min_room_ct; attempts++) {
+        int width = template.min_room_width + (rand() % (template.max_room_width - template.min_room_width + 1));
+        int height = template.min_room_height + (rand() % (template.max_room_height - template.min_room_height + 1));
+        int x = rand() % (INNER_COLS - width);
+        int y = rand() % (INNER_ROWS - height);
+        
+        // Check for overlap with existing rooms (leave 1-tile gap)
+        bool can_place = true;
+        for (int i = 0; i < placed_rooms; i++) {
+            if (!(x >= rooms[i].x + rooms[i].width + 1 || 
+                  x + width + 1 <= rooms[i].x ||
+                  y >= rooms[i].y + rooms[i].height + 1 || 
+                  y + height + 1 <= rooms[i].y)) {
+                can_place = false;
+                break;
+            }
         }
-        // divide rooms per iterations
-        for (int i = 0; i < template.bsp_iterations; i++) {
-            bsp_iterate(space_matrix, i);
-        }
-        // count distinct rooms without consolidation
-        room_ct = count_distinct_rooms(space_matrix);
-        success = (min_room_ct <= room_ct);
-        consolidations++;
-        // take what we can get
-        if (consolidations > MAX_CONSOLIDATIONS) {
-            fprintf(stderr, "Warning: room generation failed within max allowable iterations, using result\n");
-            success = true;
+        
+        if (can_place) {
+            rooms[placed_rooms] = (RoomRect){x, y, width, height, placed_rooms + 1};
+            
+            // Fill matrix with room ID
+            for (int ry = y; ry < y + height; ry++) {
+                for (int rx = x; rx < x + width; rx++) {
+                    space_matrix[ry * INNER_COLS + rx] = placed_rooms + 1;
+                }
+            }
+            placed_rooms++;
         }
     }
-    // designate one room as background and place hallways between others
-    add_background(room_ct, space_matrix);
+    
+    // Connect rooms with L-shaped corridors
+    for (int i = 1; i < placed_rooms; i++) {
+        RoomRect *room1 = &rooms[i-1];
+        RoomRect *room2 = &rooms[i];
+        
+        // Get center points
+        int cx1 = room1->x + room1->width / 2;
+        int cy1 = room1->y + room1->height / 2;
+        int cx2 = room2->x + room2->width / 2;
+        int cy2 = room2->y + room2->height / 2;
+        
+        // Create L-shaped corridor
+        // Horizontal segment
+        int start_x = (cx1 < cx2) ? cx1 : cx2;
+        int end_x = (cx1 < cx2) ? cx2 : cx1;
+        for (int x = start_x; x <= end_x; x++) {
+            if (space_matrix[cy1 * INNER_COLS + x] == 0) {
+                space_matrix[cy1 * INNER_COLS + x] = BACKGROUND_FLAG;
+            }
+        }
+        
+        // Vertical segment
+        int start_y = (cy1 < cy2) ? cy1 : cy2;
+        int end_y = (cy1 < cy2) ? cy2 : cy1;
+        for (int y = start_y; y <= end_y; y++) {
+            if (space_matrix[y * INNER_COLS + cx2] == 0) {
+                space_matrix[y * INNER_COLS + cx2] = BACKGROUND_FLAG;
+            }
+        }
+    }
+    
+    free(rooms);
     return space_matrix;
 }
 
 void assign_tiles(Region *region_ptr, int *room_matrix, RegionTemplate template) {
-    // Only assign tiles for the inner area (excluding outermost ring)
+    // Assign tiles for the inner area
     for (int inner_row = 0; inner_row < INNER_ROWS; inner_row++) {
         for (int inner_col = 0; inner_col < INNER_COLS; inner_col++) {
-            // Map inner matrix coordinates to actual region coordinates
-            int region_row = inner_row + 1;  // offset by 1 to skip top border
-            int region_col = inner_col + 1;  // offset by 1 to skip left border
-            
-            // Calculate index in the inner matrix
+            int region_row = inner_row + 1;
+            int region_col = inner_col + 1;
             int matrix_index = inner_row * INNER_COLS + inner_col;
             
             EntityID id = region_ptr->tile_ids[region_row][region_col];
             Sprite *sprite = sc_map_get_64v(&(region_ptr->gs->Sprite_map), id);
             
-            // background
-            if (room_matrix[matrix_index] == BACKGROUND_FLAG) {
+            if (room_matrix[matrix_index] == 0) {
+                // Unassigned space - use default background
                 *sprite = template.default_background;
-            } else {  // room tiles  
+            } else if (room_matrix[matrix_index] == BACKGROUND_FLAG) {
+                // Corridor - use background but ensure passable
+                *sprite = template.default_background;
+                Tile *tile = sc_map_get_64v(&(region_ptr->gs->Tile_map), id);
+                if (sc_map_found(&(region_ptr->gs->Tile_map))) {
+                    tile->passable = true;
+                }
+            } else {
+                // Room - use room floor
                 *sprite = template.room_floor;
-            }
-        }
-    }
-}
-
-static void bsp_iterate(void *_matrix, int itr) {
-    // find all existing rooms and split them
-    int max_room_id = count_distinct_rooms(_matrix);
-    int next_room_id = max_room_id + 1;
-    
-    // split each existing room
-    for (int room_id = 1; room_id <= max_room_id; room_id++) {
-        if (room_sz(_matrix, room_id) > 16) {  // only split rooms with at least 16 tiles (4x4)
-            partition_space(_matrix, room_id, next_room_id);
-            next_room_id++;
-        }
-    }
-}
-
-static void partition_space(void *_matrix, int room_id, int new_id) {
-    int *matrix = _matrix;
-    int min_row = INNER_ROWS, min_col = INNER_COLS, max_row = -1, max_col = -1;
-    
-    // find bounding box of the room in the inner matrix
-    for (int row = 0; row < INNER_ROWS; row++) {
-        for (int col = 0; col < INNER_COLS; col++) {
-            int index = row * INNER_COLS + col;
-            if (matrix[index] == room_id) {
-                if (row < min_row) min_row = row;
-                if (row > max_row) max_row = row;
-                if (col < min_col) min_col = col;
-                if (col > max_col) max_col = col;
-            }
-        }
-    }
-    
-    // check if room is large enough to split
-    int width = max_col - min_col + 1;
-    int height = max_row - min_row + 1;
-    
-    if (width < 4 || height < 4) {
-        return; // too small to split
-    }
-    
-    // decide split direction - prefer splitting longer dimension
-    bool split_horizontally = (height > width) || (height == width && rand() % 2);
-    
-    if (split_horizontally) {
-        // split horizontally (create top and bottom rooms)
-        int split_row = min_row + 2 + (rand() % (height - 3)); // ensure at least 2 tiles on each side
-        
-        for (int row = min_row; row <= max_row; row++) {
-            for (int col = min_col; col <= max_col; col++) {
-                int index = row * INNER_COLS + col;
-                if (matrix[index] == room_id && row >= split_row) {
-                    matrix[index] = new_id;
-                }
-            }
-        }
-    } else {
-        // split vertically (create left and right rooms)
-        int split_col = min_col + 2 + (rand() % (width - 3)); // ensure at least 2 tiles on each side
-        
-        for (int row = min_row; row <= max_row; row++) {
-            for (int col = min_col; col <= max_col; col++) {
-                int index = row * INNER_COLS + col;
-                if (matrix[index] == room_id && col >= split_col) {
-                    matrix[index] = new_id;
+                Tile *tile = sc_map_get_64v(&(region_ptr->gs->Tile_map), id);
+                if (sc_map_found(&(region_ptr->gs->Tile_map))) {
+                    tile->passable = true;
                 }
             }
         }
@@ -345,39 +330,6 @@ static void partition_space(void *_matrix, int room_id, int new_id) {
 }
 
 
-
-int room_sz(void *_matrix, int room_id) {
-    int sz = 0;
-    for (size_t i = 0; i < INNER_AREA; i++) {
-        if (((int *)_matrix)[i] == room_id) sz++;
-    }
-    return sz;
-}
-
-
-
-void add_background(int room_ct, void *_matrix) {
-    int *matrix = _matrix;
-    if (room_ct == 0) return;
-    
-    int background_room = (rand() % room_ct) + 1;
-    
-    for (size_t i = 0; i < INNER_AREA; i++) {
-        if (matrix[i] == background_room) {
-            matrix[i] = BACKGROUND_FLAG;
-        }
-    }
-}
-
-static int count_distinct_rooms(int *matrix) {
-    int max_room_id = 0;
-    for (size_t i = 0; i < INNER_AREA; i++) {
-        if (matrix[i] > max_room_id) {
-            max_room_id = matrix[i];
-        }
-    }
-    return max_room_id;
-}
 
 
 static bool* extract_border_passable_tiles(Region *region, Direction border) {
