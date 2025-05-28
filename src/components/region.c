@@ -33,7 +33,6 @@ static void bsp_iterate(void *_matrix, int itr);
 static void partition_space(void *_matrix, int room_id, int new_id);
 static int room_sz(void *_matrix, int room_id);
 static void add_background(int room_ct, void *_matrix);
-static void add_corridors_to_full_height_rooms(void *_matrix);
 static int count_distinct_rooms(int *matrix);
 static bool* extract_border_passable_tiles(Region *region, Direction border);
 static void generate_boundaries_with_alignment(Region *p, GameState *gs, bool *north_align, bool *south_align, bool *west_align, bool *east_align);
@@ -247,8 +246,6 @@ int *gen_rooms(Region *p, RegionTemplate template) {
             success = true;
         }
     }
-    // add corridors through full-height rooms before adding background
-    add_corridors_to_full_height_rooms(space_matrix);
     // designate one room as background and place hallways between others
     add_background(room_ct, space_matrix);
     return space_matrix;
@@ -363,72 +360,13 @@ void add_background(int room_ct, void *_matrix) {
     int *matrix = _matrix;
     if (room_ct == 0) return;
     
-    // Pick one room randomly to be background
     int background_room = (rand() % room_ct) + 1;
     
-    // Convert the selected room to background
     for (size_t i = 0; i < INNER_AREA; i++) {
         if (matrix[i] == background_room) {
             matrix[i] = BACKGROUND_FLAG;
         }
     }
-    
-    // Add 1-tile background border around remaining rooms
-    int *temp_matrix = malloc(INNER_AREA * sizeof(int));
-    check_malloc(temp_matrix);
-    
-    // Copy current matrix to temp
-    for (int i = 0; i < INNER_AREA; i++) {
-        temp_matrix[i] = matrix[i];
-    }
-    
-    // For each room tile, check if it's on the edge and add background border
-    for (int row = 0; row < INNER_ROWS; row++) {
-        for (int col = 0; col < INNER_COLS; col++) {
-            int index = row * INNER_COLS + col;
-            if (temp_matrix[index] > 0) { // if it's a room (not background)
-                // Check all 8 directions for edge detection
-                for (int dr = -1; dr <= 1; dr++) {
-                    for (int dc = -1; dc <= 1; dc++) {
-                        if (dr == 0 && dc == 0) continue; // skip center
-                        int nr = row + dr;
-                        int nc = col + dc;
-                        
-                        // If adjacent cell is out of bounds or different room, make current cell background
-                        if (nr < 0 || nr >= INNER_ROWS || nc < 0 || nc >= INNER_COLS) {
-                            matrix[index] = BACKGROUND_FLAG;
-                            goto next_cell; // break out of both loops
-                        }
-                        
-                        int neighbor_index = nr * INNER_COLS + nc;
-                        if (temp_matrix[neighbor_index] != temp_matrix[index] && temp_matrix[neighbor_index] != BACKGROUND_FLAG) {
-                            matrix[index] = BACKGROUND_FLAG;
-                            goto next_cell; // break out of both loops
-                        }
-                    }
-                }
-                next_cell:;
-            }
-        }
-    }
-    
-    free(temp_matrix);
-}
-
-
-void debug_print_room_matrix(int *room_matrix) {
-    printf("\n=== Room Matrix Debug ===\n");
-    printf("Inner region size: %dx%d (INNER_ROWS x INNER_COLS)\n", INNER_ROWS, INNER_COLS);
-    printf("Matrix contents:\n");
-    
-    for (int row = 0; row < INNER_ROWS; row++) {
-        for (int col = 0; col < INNER_COLS; col++) {
-            int index = row * INNER_COLS + col;
-            printf("%2d ", room_matrix[index]);
-        }
-        printf("\n");
-    }
-    printf("========================\n\n");
 }
 
 static int count_distinct_rooms(int *matrix) {
@@ -441,70 +379,6 @@ static int count_distinct_rooms(int *matrix) {
     return max_room_id;
 }
 
-static void add_corridors_to_full_height_rooms(void *_matrix) {
-    int *matrix = _matrix;
-    
-    // Check each room to see if it's full height within the inner matrix
-    int max_room_id = count_distinct_rooms(_matrix);
-    for (int room_id = 1; room_id <= max_room_id; room_id++) {
-        int min_col = INNER_COLS, max_col = -1;
-        
-        // Check if this room spans from top boundary (row 0) to bottom boundary (row INNER_ROWS-1)
-        bool has_top_row = false, has_bottom_row = false;
-        
-        // Check top row of inner matrix
-        for (int col = 0; col < INNER_COLS; col++) {
-            int top_index = 0 * INNER_COLS + col;
-            if (matrix[top_index] == room_id) {
-                has_top_row = true;
-                if (col < min_col) min_col = col;
-                if (col > max_col) max_col = col;
-            }
-        }
-        
-        // Check bottom row of inner matrix
-        for (int col = 0; col < INNER_COLS; col++) {
-            int bottom_index = (INNER_ROWS - 1) * INNER_COLS + col;
-            if (matrix[bottom_index] == room_id) {
-                has_bottom_row = true;
-                if (col < min_col) min_col = col;
-                if (col > max_col) max_col = col;
-            }
-        }
-        
-        // Check if room spans the full height
-        if (has_top_row && has_bottom_row) {
-            bool spans_full_height = true;
-            for (int row = 0; row < INNER_ROWS; row++) {
-                bool has_room_in_row = false;
-                for (int col = min_col; col <= max_col; col++) {
-                    int index = row * INNER_COLS + col;
-                    if (matrix[index] == room_id) {
-                        has_room_in_row = true;
-                        break;
-                    }
-                }
-                if (!has_room_in_row) {
-                    spans_full_height = false;
-                    break;
-                }
-            }
-            
-            if (spans_full_height && (max_col - min_col + 1) >= 4) {
-                // Create horizontal corridor at random height
-                int corridor_row = 1 + (rand() % (INNER_ROWS - 2)); // between rows 1 and INNER_ROWS-2
-                
-                // Convert corridor tiles to background (passable)
-                for (int col = min_col; col <= max_col; col++) {
-                    int index = corridor_row * INNER_COLS + col;
-                    if (matrix[index] == room_id) {
-                        matrix[index] = BACKGROUND_FLAG;
-                    }
-                }
-            }
-        }
-    }
-}
 
 static bool* extract_border_passable_tiles(Region *region, Direction border) {
     bool *passable_tiles = malloc(sizeof(bool) * (REGION_WIDTH - 2));
@@ -576,7 +450,6 @@ static void generate_boundaries_with_alignment(Region *p, GameState *gs, bool *n
         gen_rand_tile_line((Position){.row = 0, .column = 1, .region_ptr = p}, true, REGION_WIDTH - 2, 1, 6, SPRITE_GRASS,
             (Tile){.passable = true}, gs);
     }
-    
     // west
     gen_straight_tile_line((Position){.row = 0, .column = 0, .region_ptr = p}, false, REGION_HEIGHT, SPRITE_MOUNTAIN,
         (Tile){.passable = false}, gs);
