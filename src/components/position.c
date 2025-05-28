@@ -240,6 +240,6 @@ static void change_region(Direction dir, Position* pos, GameState* gs) {
     gs->cur_region_ptr = new_region;
 
     // if the new region does not have neighbors, create them now
-    if (new_region->north == NULL || new_region->south == NULL || new_region->west == NULL || new_region->east == NULL)
+    if (new_region->north == 0 || new_region->south == 0 || new_region->west == 0 || new_region->east == 0)
         generate_neighbors(new_region_id, gs, DEFAULT_REGION);
 }
